@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -29,19 +29,14 @@ import {
 } from "@/components/ui/select";
 
 export default function AdminDishesPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Check if user is admin
-  if (session?.user?.role !== "admin") {
-    router.push("/");
-    return null;
-  }
-
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = 
+  // All hooks must be called before any conditional returns
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
     api.dish.getAll.useInfiniteQuery(
       {
         search: searchQuery,
@@ -50,7 +45,8 @@ export default function AdminDishesPage() {
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
+        enabled: status === "authenticated" && session?.user?.role === "admin",
+      },
     );
 
   const deleteDish = api.dish.delete.useMutation({
@@ -62,6 +58,23 @@ export default function AdminDishesPage() {
       toast.error(error.message);
     },
   });
+
+  // Check if user is admin
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.role !== "admin") {
+      router.push("/");
+    }
+  }, [session, status, router]);
+
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return <div className="container mx-auto py-6">{t("message.loading")}</div>;
+  }
+
+  // Don't render if not admin
+  if (status === "authenticated" && session?.user?.role !== "admin") {
+    return null;
+  }
 
   const dishes = data?.pages.flatMap((page) => page.dishes) ?? [];
 
@@ -93,8 +106,10 @@ export default function AdminDishesPage() {
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">{t("nav.admin")} - {t("nav.dishes")}</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">
+          {t("nav.admin")} - {t("nav.dishes")}
+        </h1>
         <Link href="/admin/dishes/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
@@ -108,7 +123,7 @@ export default function AdminDishesPage() {
           <div className="flex gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
                 <Input
                   placeholder={t("action.search")}
                   value={searchQuery}
@@ -142,7 +157,9 @@ export default function AdminDishesPage() {
                 <TableHead>{t("dish.servings")}</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Tags</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-right">
+                  {t("action.actions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -152,7 +169,7 @@ export default function AdminDishesPage() {
                     <div>
                       <div className="font-medium">{dish.name_vi}</div>
                       {dish.name_en && (
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-muted-foreground text-sm">
                           {dish.name_en}
                         </div>
                       )}
@@ -162,15 +179,25 @@ export default function AdminDishesPage() {
                   <TableCell>{formatCookTime(dish.cook_time)}</TableCell>
                   <TableCell>{dish.servings}</TableCell>
                   <TableCell>
-                    <Badge variant={dish.status === "active" ? "default" : "secondary"}>
+                    <Badge
+                      variant={
+                        dish.status === "active" ? "default" : "secondary"
+                      }
+                    >
                       {dish.status}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {dish.DishTag.slice(0, 2).map((dt) => (
-                        <Badge key={dt.tag.id} variant="outline" className="text-xs">
-                          {language === "vi" ? dt.tag.name_vi : dt.tag.name_en ?? dt.tag.name_vi}
+                        <Badge
+                          key={dt.tag.id}
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          {language === "vi"
+                            ? dt.tag.name_vi
+                            : (dt.tag.name_en ?? dt.tag.name_vi)}
                         </Badge>
                       ))}
                       {dish.DishTag.length > 2 && (
@@ -216,7 +243,7 @@ export default function AdminDishesPage() {
 
       {/* No Results */}
       {dishes.length === 0 && !isFetchingNextPage && (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <p className="text-muted-foreground">{t("message.noData")}</p>
         </div>
       )}

@@ -180,7 +180,8 @@ export default function IngredientsPage() {
     const matchesSearch =
       ing.name_vi.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ing.name_en?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || ing.category === selectedCategory;
+    const matchesCategory =
+      selectedCategory === "all" || ing.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -196,7 +197,7 @@ export default function IngredientsPage() {
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">{t("nav.ingredients")}</h1>
         <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -209,7 +210,7 @@ export default function IngredientsPage() {
           <div className="flex gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
                 <Input
                   placeholder={t("action.search")}
                   value={searchQuery}
@@ -218,7 +219,10 @@ export default function IngredientsPage() {
                 />
               </div>
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder={t("ingredient.category")} />
               </SelectTrigger>
@@ -246,7 +250,9 @@ export default function IngredientsPage() {
                 <TableHead>{t("ingredient.price")}</TableHead>
                 <TableHead>{t("ingredient.seasonal")}</TableHead>
                 <TableHead>{t("ingredient.lastUpdated")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-right">
+                  {t("action.actions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -256,18 +262,22 @@ export default function IngredientsPage() {
                     <div>
                       <div className="font-medium">{ingredient.name_vi}</div>
                       {ingredient.name_en && (
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-muted-foreground text-sm">
                           {ingredient.name_en}
                         </div>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
-                    {INGREDIENT_CATEGORIES.find((c) => c.value === ingredient.category)
-                      ?.[language === "vi" ? "label_vi" : "label_en"] ?? ingredient.category}
+                    {INGREDIENT_CATEGORIES.find(
+                      (c) => c.value === ingredient.category,
+                    )?.[language === "vi" ? "label_vi" : "label_en"] ??
+                      ingredient.category}
                   </TableCell>
                   <TableCell>{ingredient.default_unit}</TableCell>
-                  <TableCell>{formatPrice(toSafeNumber(ingredient.current_price))}</TableCell>
+                  <TableCell>
+                    {formatPrice(toSafeNumber(ingredient.current_price))}
+                  </TableCell>
                   <TableCell>
                     {ingredient.seasonal_flag ? (
                       <span className="text-green-600">✓</span>
@@ -276,7 +286,9 @@ export default function IngredientsPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    {new Date(ingredient.price_updated_at).toLocaleDateString("vi-VN")}
+                    {new Date(ingredient.price_updated_at).toLocaleDateString(
+                      "vi-VN",
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -303,7 +315,7 @@ export default function IngredientsPage() {
 
       {/* Create/Edit Dialog */}
       <Dialog
-        open={isCreateOpen ?? !!editingIngredient}
+        open={isCreateOpen || !!editingIngredient}
         onOpenChange={(open) => {
           if (!open) {
             setIsCreateOpen(false);
@@ -315,16 +327,21 @@ export default function IngredientsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingIngredient ? t("action.edit") : t("action.create")} {t("ingredient.name")}
+              {editingIngredient ? t("action.edit") : t("action.create")}{" "}
+              {t("ingredient.name")}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name_vi">{t("ingredient.name")} (Tiếng Việt) *</Label>
+              <Label htmlFor="name_vi">
+                {t("ingredient.name")} (Tiếng Việt) *
+              </Label>
               <Input
                 id="name_vi"
                 value={formData.name_vi}
-                onChange={(e) => setFormData({ ...formData, name_vi: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name_vi: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
@@ -332,14 +349,18 @@ export default function IngredientsPage() {
               <Input
                 id="name_en"
                 value={formData.name_en}
-                onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name_en: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="category">{t("ingredient.category")} *</Label>
               <Select
                 value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, category: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -357,7 +378,9 @@ export default function IngredientsPage() {
               <Label htmlFor="unit">{t("ingredient.unit")} *</Label>
               <Select
                 value={formData.default_unit}
-                onValueChange={(value) => setFormData({ ...formData, default_unit: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, default_unit: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -378,7 +401,10 @@ export default function IngredientsPage() {
                 type="number"
                 value={formData.current_price}
                 onChange={(e) =>
-                  setFormData({ ...formData, current_price: parseFloat(e.target.value) ?? 0 })
+                  setFormData({
+                    ...formData,
+                    current_price: parseFloat(e.target.value) ?? 0,
+                  })
                 }
               />
             </div>
@@ -396,16 +422,24 @@ export default function IngredientsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsCreateOpen(false);
-              setEditingIngredient(null);
-              resetForm();
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateOpen(false);
+                setEditingIngredient(null);
+                resetForm();
+              }}
+            >
               {t("action.cancel")}
             </Button>
             <Button
               onClick={editingIngredient ? handleUpdate : handleCreate}
-              disabled={!formData.name_vi || !formData.category || !formData.default_unit || formData.current_price <= 0}
+              disabled={
+                !formData.name_vi ||
+                !formData.category ||
+                !formData.default_unit ||
+                formData.current_price <= 0
+              }
             >
               {t("action.save")}
             </Button>
