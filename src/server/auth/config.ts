@@ -17,8 +17,9 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      role: string;
+      language_preference: string;
       // ...other properties
-      // role: UserRole;
     } & DefaultSession["user"];
   }
 
@@ -28,6 +29,8 @@ declare module "next-auth" {
     emailVerified?: Date | null; // Allow undefined
     email?: string | null; // Allow undefined
     name?: string | null; // Allow undefined
+    role?: string;
+    language_preference?: string;
   }
 }
 
@@ -88,6 +91,19 @@ export const authConfig = {
     jwt: async ({ token, user }) => {
       if (user) {
         token.id = user.id;
+        token.role = user.role;
+        token.language_preference = user.language_preference;
+      }
+      // Fetch user data on subsequent requests
+      if (!token.role && token.id) {
+        const dbUser = await db.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, language_preference: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.language_preference = dbUser.language_preference;
+        }
       }
       return token;
     },
@@ -97,6 +113,8 @@ export const authConfig = {
         user: {
           ...session.user,
           id: token.id as string,
+          role: token.role as string,
+          language_preference: token.language_preference as string,
         },
       };
     },

@@ -67,10 +67,16 @@ model User {
     password               String? // Added for email/password authentication
     reset_password_token   String?              @map("resetPasswordToken")
     reset_password_expires DateTime?            @map("resetPasswordExpires")
+    role                   String               @default("user") // user or admin
+    language_preference    String               @default("vi") // vi or en
+    created_at             DateTime             @default(now())
+    updated_at             DateTime             @updatedAt
     Account                Account[]
     Organization           Organization[]
     OrganizationMember     OrganizationMember[]
     Session                Session[]
+    Menu                   Menu[]
+    FavoriteDish           FavoriteDish[]
 }
 
 model VerificationToken {
@@ -79,4 +85,158 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+// Meal Planning Models
+
+model Dish {
+    id               String           @id @default(cuid())
+    name_vi          String           @db.VarChar(255)
+    name_en          String?          @db.VarChar(255)
+    description_vi   String           @db.Text
+    description_en   String?          @db.Text
+    instructions_vi  String           @db.Text
+    instructions_en  String?          @db.Text
+    difficulty       String           // easy, medium, hard
+    cook_time        Int              // in minutes
+    prep_time        Int              @default(0) // in minutes
+    servings         Int              @default(4)
+    image_url        String?
+    source_url       String?
+    status           String           @default("active") // active, inactive
+    created_at       DateTime         @default(now())
+    updated_at       DateTime         @updatedAt
+    DishIngredient   DishIngredient[]
+    DishTag          DishTag[]
+    MenuDish         MenuDish[]
+    FavoriteDish     FavoriteDish[]
+
+    @@index([name_vi])
+    @@index([status])
+}
+
+model Ingredient {
+    id               String           @id @default(cuid())
+    name_vi          String           @unique @db.VarChar(255)
+    name_en          String?          @db.VarChar(255)
+    category         String           @db.VarChar(100) // vegetables, meat, spices, etc.
+    default_unit     String           @db.VarChar(50) // kg, g, ml, etc.
+    current_price    Decimal          @db.Decimal(10, 2) // in VND
+    price_updated_at DateTime         @default(now())
+    seasonal_flag    Boolean          @default(false)
+    created_at       DateTime         @default(now())
+    updated_at       DateTime         @updatedAt
+    DishIngredient   DishIngredient[]
+    PriceHistory     PriceHistory[]
+
+    @@index([name_vi])
+    @@index([category])
+}
+
+model DishIngredient {
+    id            String     @id @default(cuid())
+    dish_id       String
+    ingredient_id String
+    quantity      Decimal    @db.Decimal(10, 3)
+    unit          String     @db.VarChar(50) // can override default unit
+    notes         String?    @db.Text
+    optional      Boolean    @default(false)
+    dish          Dish       @relation(fields: [dish_id], references: [id], onDelete: Cascade)
+    ingredient    Ingredient @relation(fields: [ingredient_id], references: [id])
+
+    @@unique([dish_id, ingredient_id])
+    @@index([dish_id])
+    @@index([ingredient_id])
+}
+
+model Tag {
+    id       String    @id @default(cuid())
+    name_vi  String    @unique @db.VarChar(100)
+    name_en  String?   @db.VarChar(100)
+    category String?   @db.VarChar(50) // meal_type, cuisine, dietary, etc.
+    DishTag  DishTag[]
+
+    @@index([name_vi])
+    @@index([category])
+}
+
+model DishTag {
+    dish_id String
+    tag_id  String
+    dish    Dish   @relation(fields: [dish_id], references: [id], onDelete: Cascade)
+    tag     Tag    @relation(fields: [tag_id], references: [id])
+
+    @@id([dish_id, tag_id])
+    @@index([dish_id])
+    @@index([tag_id])
+}
+
+model Menu {
+    id          String       @id @default(cuid())
+    user_id     String
+    name        String       @db.VarChar(255)
+    description String?      @db.Text
+    start_date  DateTime?
+    end_date    DateTime?
+    servings    Int          @default(4) // number of people
+    visibility  String       @default("private") // private, public
+    created_at  DateTime     @default(now())
+    updated_at  DateTime     @updatedAt
+    user        User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    MenuDish    MenuDish[]
+    MenuShare   MenuShare[]
+
+    @@index([user_id])
+    @@index([visibility])
+}
+
+model MenuDish {
+    id         String   @id @default(cuid())
+    menu_id    String
+    dish_id    String
+    meal_group String?  @db.VarChar(50) // breakfast, lunch, dinner, snack
+    day_index  Int?     // 0 = Monday, 6 = Sunday
+    quantity   Int      @default(1) // multiplier for the dish
+    order_index Int     @default(0) // for manual ordering
+    menu       Menu     @relation(fields: [menu_id], references: [id], onDelete: Cascade)
+    dish       Dish     @relation(fields: [dish_id], references: [id])
+
+    @@index([menu_id])
+    @@index([dish_id])
+}
+
+model MenuShare {
+    id          String    @id @default(cuid())
+    menu_id     String
+    share_code  String    @unique @default(cuid())
+    permissions String    @default("view") // view, clone
+    expires_at  DateTime?
+    created_at  DateTime  @default(now())
+    menu        Menu      @relation(fields: [menu_id], references: [id], onDelete: Cascade)
+
+    @@index([menu_id])
+    @@index([share_code])
+}
+
+model FavoriteDish {
+    user_id    String
+    dish_id    String
+    created_at DateTime @default(now())
+    user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    dish       Dish     @relation(fields: [dish_id], references: [id], onDelete: Cascade)
+
+    @@id([user_id, dish_id])
+    @@index([user_id])
+    @@index([dish_id])
+}
+
+model PriceHistory {
+    id            String     @id @default(cuid())
+    ingredient_id String
+    price         Decimal    @db.Decimal(10, 2)
+    recorded_at   DateTime   @default(now())
+    ingredient    Ingredient @relation(fields: [ingredient_id], references: [id], onDelete: Cascade)
+
+    @@index([ingredient_id])
+    @@index([recorded_at])
 }

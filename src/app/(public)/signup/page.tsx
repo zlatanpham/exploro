@@ -45,7 +45,7 @@ export default function SignUpPage() {
       router.push("/login");
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create account.");
+      toast.error(error.message ?? "Failed to create account.");
     },
   });
 

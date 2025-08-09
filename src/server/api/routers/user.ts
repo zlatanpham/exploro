@@ -205,4 +205,15 @@ export const userRouter = createTRPCRouter({
 
       return { success: true };
     }),
+
+  updateLanguagePreference: protectedProcedure
+    .input(z.object({ language: z.enum(["vi", "en"]) }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      
+      return ctx.db.user.update({
+        where: { id: userId },
+        data: { language_preference: input.language },
+      });
+    }),
 });

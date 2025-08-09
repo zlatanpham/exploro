@@ -14,7 +14,13 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git rm:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(npm run build:*)",
+      "Bash(./fix-imports.sh)",
+      "Bash(npm run lint:*)",
+      "Bash(./fix-eslint.sh:*)",
+      "Bash(./fix-final-issues.sh:*)"
     ],
     "deny": []
   }

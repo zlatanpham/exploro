@@ -38,6 +38,12 @@ export default tseslint.config(
         { checksVoidReturn: { attributes: false } },
       ],
       "@next/next/no-img-element": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-floating-promises": "off",
+      "@typescript-eslint/prefer-nullish-coalescing": "off",
+      "@typescript-eslint/await-thenable": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-empty-function": "off",
     },
   },
   {

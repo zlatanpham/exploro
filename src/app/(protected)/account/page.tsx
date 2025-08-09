@@ -74,7 +74,7 @@ export default function AccountPage() {
                 <EditNameDialog
                   currentName={user?.name ?? ""}
                   onSuccess={async () => {
-                    await refetch();
+                    await void refetch();
                   }}
                 />
               </div>
@@ -100,7 +100,7 @@ export default function AccountPage() {
               </p>
               <ResetPasswordDialog
                 onSuccess={async () => {
-                  await refetch();
+                  await void refetch();
                 }}
               />
             </div>

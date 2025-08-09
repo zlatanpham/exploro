@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { useLanguage } from "./_context/language";
 import {
   Card,
   CardContent,
@@ -9,99 +10,179 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UserIcon, SettingsIcon, ShieldIcon } from "lucide-react";
+import { ChefHat, Calendar, Heart, Plus } from "lucide-react";
 import Link from "next/link";
+import { api } from "@/trpc/react";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
+  const { t, language } = useLanguage();
+  
+  // Fetch some stats
+  const { data: recentMenus } = api.menu.getUserMenus.useQuery({ limit: 3 });
+  const { data: favorites } = api.dish.getFavorites.useQuery();
+  const { data: publicDishes } = api.dish.getAll.useQuery({ limit: 6 });
 
-  const user = session?.user as { name?: string; email?: string };
+  const user = session?.user as { name?: string; email?: string; role?: string };
 
   return (
     <div className="container mx-auto space-y-6 p-6">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <h1 className="text-3xl font-bold">
+          {language === "vi" ? "Xin chào" : "Welcome"}{user?.name ? `, ${user.name}` : ""}!
+        </h1>
         <p className="text-muted-foreground">
-          Welcome back{user?.name ? `, ${user.name}` : ""}!
+          {language === "vi" 
+            ? "Hãy bắt đầu lập kế hoạch bữa ăn cho gia đình bạn"
+            : "Start planning meals for your family"}
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserIcon className="h-5 w-5" />
-              Profile
-            </CardTitle>
-            <CardDescription>
-              Manage your account settings and preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full">
-              <Link href="/account">View Account</Link>
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Link href="/dishes">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("nav.dishes")}
+              </CardTitle>
+              <ChefHat className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{publicDishes?.dishes.length ?? 0}</div>
+              <p className="text-xs text-muted-foreground">
+                {language === "vi" ? "Món ăn có sẵn" : "Available dishes"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <SettingsIcon className="h-5 w-5" />
-              Settings
-            </CardTitle>
-            <CardDescription>
-              Configure your application preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full" disabled>
-              Coming Soon
-            </Button>
-          </CardContent>
-        </Card>
+        <Link href="/menus">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("nav.menus")}
+              </CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{recentMenus?.menus.length ?? 0}</div>
+              <p className="text-xs text-muted-foreground">
+                {language === "vi" ? "Thực đơn của bạn" : "Your menus"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShieldIcon className="h-5 w-5" />
-              Security
-            </CardTitle>
-            <CardDescription>
-              Manage your security settings and permissions
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full" disabled>
-              Coming Soon
-            </Button>
-          </CardContent>
-        </Card>
+        <Link href="/favorites">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("nav.favorites")}
+              </CardTitle>
+              <Heart className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{favorites?.length ?? 0}</div>
+              <p className="text-xs text-muted-foreground">
+                {language === "vi" ? "Món yêu thích" : "Favorite dishes"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/menus?create=true">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-primary text-primary-foreground">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {language === "vi" ? "Tạo thực đơn" : "Create Menu"}
+              </CardTitle>
+              <Plus className="h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs">
+                {language === "vi" 
+                  ? "Bắt đầu lập kế hoạch bữa ăn mới"
+                  : "Start planning a new meal"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
+      {/* Recent Menus */}
       <Card>
         <CardHeader>
-          <CardTitle>Getting Started</CardTitle>
-          <CardDescription>
-            Start building your application with this boilerplate
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="prose prose-sm max-w-none">
-            <p>
-              This is a Next.js boilerplate with authentication, database setup,
-              and a clean UI foundation. You can start building your application
-              by:
-            </p>
-            <ul>
-              <li>Adding your business logic to the tRPC routers</li>
-              <li>Creating new pages and components</li>
-              <li>Extending the database schema as needed</li>
-              <li>Customizing the UI to match your brand</li>
-            </ul>
+          <div className="flex items-center justify-between">
+            <CardTitle>{language === "vi" ? "Thực đơn gần đây" : "Recent Menus"}</CardTitle>
+            <Link href="/menus">
+              <Button variant="ghost" size="sm">
+                {language === "vi" ? "Xem tất cả" : "View all"}
+              </Button>
+            </Link>
           </div>
+        </CardHeader>
+        <CardContent>
+          {recentMenus && recentMenus.menus.length > 0 ? (
+            <div className="space-y-4">
+              {recentMenus.menus.map((menu) => (
+                <div key={menu.id} className="flex items-center justify-between">
+                  <div>
+                    <Link href={`/menus/${menu.id}`} className="font-medium hover:underline">
+                      {menu.name}
+                    </Link>
+                    <p className="text-sm text-muted-foreground">
+                      {menu._count.MenuDish} {t("menu.dishes")} • {menu.servings} {t("time.people")}
+                    </p>
+                  </div>
+                  <Link href={`/menus/${menu.id}/edit`}>
+                    <Button variant="outline" size="sm">
+                      {t("action.edit")}
+                    </Button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">
+              {language === "vi" 
+                ? "Bạn chưa có thực đơn nào. Hãy tạo thực đơn đầu tiên!"
+                : "You don't have any menus yet. Create your first menu!"}
+            </p>
+          )}
         </CardContent>
       </Card>
+
+      {/* Admin Quick Access */}
+      {user?.role === "admin" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("nav.admin")}</CardTitle>
+            <CardDescription>
+              {language === "vi" ? "Quản lý nội dung" : "Content management"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-2 md:grid-cols-3">
+              <Link href="/admin/dishes">
+                <Button variant="outline" className="w-full">
+                  {language === "vi" ? "Quản lý món ăn" : "Manage Dishes"}
+                </Button>
+              </Link>
+              <Link href="/admin/ingredients">
+                <Button variant="outline" className="w-full">
+                  {language === "vi" ? "Quản lý nguyên liệu" : "Manage Ingredients"}
+                </Button>
+              </Link>
+              <Link href="/admin/tags">
+                <Button variant="outline" className="w-full">
+                  {language === "vi" ? "Quản lý nhãn" : "Manage Tags"}
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

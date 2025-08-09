@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { HydrateClient } from "@/trpc/server";
 import { OrganizationProvider } from "./_context/organization";
+import { LanguageProvider } from "./_context/language";
 import { auth } from "@/server/auth";
 import { redirect } from "next/navigation";
 
@@ -19,10 +20,12 @@ export default async function RootLayout({
   return (
     <SidebarProvider>
       <OrganizationProvider>
-        <HydrateClient>
-          <AppSidebar />
-          <SidebarInset>{children}</SidebarInset>
-        </HydrateClient>
+        <LanguageProvider>
+          <HydrateClient>
+            <AppSidebar />
+            <SidebarInset>{children}</SidebarInset>
+          </HydrateClient>
+        </LanguageProvider>
       </OrganizationProvider>
     </SidebarProvider>
   );

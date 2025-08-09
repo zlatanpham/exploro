@@ -2,7 +2,18 @@
 
 import * as React from "react";
 import { useSession } from "next-auth/react";
-import { Send, SquareTerminal, GithubIcon, ComponentIcon } from "lucide-react";
+import { 
+  Send, 
+  GithubIcon, 
+  ComponentIcon, 
+  ChefHat, 
+  Carrot, 
+  Calendar, 
+  Heart, 
+  Tag, 
+  Shield,
+  Globe
+} from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
@@ -18,16 +29,57 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { Skeleton } from "./ui/skeleton";
+import { Button } from "./ui/button";
+import { useLanguage } from "../app/(protected)/_context/language";
 
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/",
-      icon: SquareTerminal,
-    },
-  ],
-  navSecondary: [
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session, status } = useSession();
+  const { t, language, setLanguage } = useLanguage();
+
+  const navMain = React.useMemo(() => {
+    const items = [
+      {
+        title: t("nav.dishes"),
+        url: "/dishes",
+        icon: ChefHat,
+      },
+      {
+        title: t("nav.menus"),
+        url: "/menus",
+        icon: Calendar,
+      },
+      {
+        title: t("nav.favorites"),
+        url: "/favorites",
+        icon: Heart,
+      },
+    ];
+
+    // Add admin items if user is admin
+    if (session?.user?.role === "admin") {
+      items.push(
+        {
+          title: t("nav.admin") + " - " + t("nav.dishes"),
+          url: "/admin/dishes",
+          icon: Shield,
+        },
+        {
+          title: t("nav.admin") + " - " + t("nav.ingredients"),
+          url: "/admin/ingredients",
+          icon: Carrot,
+        },
+        {
+          title: t("nav.admin") + " - " + t("nav.tags"),
+          url: "/admin/tags",
+          icon: Tag,
+        }
+      );
+    }
+
+    return items;
+  }, [session?.user?.role, t]);
+
+  const navSecondary = [
     {
       title: "Github",
       url: "https://github.com/your-username/next-starter",
@@ -38,11 +90,7 @@ const data = {
       url: "https://github.com/your-username/next-starter/issues",
       icon: Send,
     },
-  ],
-};
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: session, status } = useSession();
+  ];
 
   const user = React.useMemo(() => {
     if (!session?.user) {
@@ -73,8 +121,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <ComponentIcon className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Next Starter</span>
-                  <span className="truncate text-xs">Boilerplate</span>
+                  <span className="truncate font-medium">Exploro</span>
+                  <span className="truncate text-xs">Vietnamese Meal Planner</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -82,8 +130,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} />
+        <div className="px-3 py-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => setLanguage(language === "vi" ? "en" : "vi")}
+          >
+            <Globe className="mr-2 h-4 w-4" />
+            {language === "vi" ? "English" : "Tiếng Việt"}
+          </Button>
+        </div>
+        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         {status == "loading" ? (

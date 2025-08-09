@@ -7,10 +7,18 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
  */
 import { organizationRouter } from "./routers/organization";
 import { userRouter } from "./routers/user";
+import { dishRouter } from "./routers/dish";
+import { ingredientRouter } from "./routers/ingredient";
+import { tagRouter } from "./routers/tag";
+import { menuRouter } from "./routers/menu";
 
 export const appRouter = createTRPCRouter({
   organization: organizationRouter,
   user: userRouter,
+  dish: dishRouter,
+  ingredient: ingredientRouter,
+  tag: tagRouter,
+  menu: menuRouter,
 });
 
 // export type definition of API
