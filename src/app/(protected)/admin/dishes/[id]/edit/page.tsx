@@ -78,7 +78,7 @@ export default function EditDishPage({
   const { data: allIngredients } = api.ingredient.getAll.useQuery(undefined, {
     enabled: status === "authenticated" && session?.user?.role === "admin",
   });
-  
+
   // Fetch all unit categories
   const { data: unitCategories } = api.unit.getAllGrouped.useQuery(undefined, {
     enabled: status === "authenticated" && session?.user?.role === "admin",
@@ -426,14 +426,24 @@ export default function EditDishPage({
                   <TableRow key={index}>
                     <TableCell>
                       <Select
-                        value={ingredient.ingredient_id}
+                        value={ingredient.ingredient_id || undefined}
                         onValueChange={(v) => {
                           updateIngredient(index, "ingredient_id", v);
                           // Auto-select default unit when ingredient is selected
-                          const selectedIng = allIngredients?.find((ing) => ing.id === v);
+                          const selectedIng = allIngredients?.find(
+                            (ing) => ing.id === v,
+                          );
                           if (selectedIng?.unit) {
-                            updateIngredient(index, "unit_id", selectedIng.unit.id);
-                            updateIngredient(index, "unit", selectedIng.unit.symbol);
+                            updateIngredient(
+                              index,
+                              "unit_id",
+                              selectedIng.unit.id,
+                            );
+                            updateIngredient(
+                              index,
+                              "unit",
+                              selectedIng.unit.symbol,
+                            );
                           }
                         }}
                       >
@@ -469,22 +479,25 @@ export default function EditDishPage({
                     <TableCell>
                       {(() => {
                         const selectedIngredient = allIngredients?.find(
-                          (ing) => ing.id === ingredient.ingredient_id
+                          (ing) => ing.id === ingredient.ingredient_id,
                         );
                         const ingredientUnit = selectedIngredient?.unit;
                         const compatibleUnits = ingredientUnit
-                          ? unitCategories
-                              ?.find((cat: any) => cat.id === ingredientUnit.category_id)
-                              ?.units || []
+                          ? unitCategories?.find(
+                              (cat: any) =>
+                                cat.id === ingredientUnit.category_id,
+                            )?.units || []
                           : [];
 
                         return (
                           <Select
-                            value={ingredient.unit_id || ""}
+                            value={ingredient.unit_id || undefined}
                             onValueChange={(v) => {
                               updateIngredient(index, "unit_id", v);
                               // Also update legacy unit field with symbol
-                              const unit = compatibleUnits.find((u: any) => u.id === v);
+                              const unit = compatibleUnits.find(
+                                (u: any) => u.id === v,
+                              );
                               if (unit) {
                                 updateIngredient(index, "unit", unit.symbol);
                               }
@@ -497,8 +510,12 @@ export default function EditDishPage({
                             <SelectContent>
                               {compatibleUnits.map((unit: any) => (
                                 <SelectItem key={unit.id} value={unit.id}>
-                                  {unit.symbol} - {language === "vi" ? unit.name_vi : unit.name_en}
-                                  {ingredientUnit?.id === unit.id && " (default)"}
+                                  {unit.symbol} -{" "}
+                                  {language === "vi"
+                                    ? unit.name_vi
+                                    : unit.name_en}
+                                  {ingredientUnit?.id === unit.id &&
+                                    " (default)"}
                                 </SelectItem>
                               ))}
                             </SelectContent>

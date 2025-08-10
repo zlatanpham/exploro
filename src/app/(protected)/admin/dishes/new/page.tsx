@@ -64,10 +64,14 @@ export default function NewDishPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Fetch all ingredients (for dropdown)
-  const { data: allIngredients } = api.ingredient.getAll.useQuery(undefined, {
+  const {
+    data: allIngredients,
+    isLoading: ingredientsLoading,
+    error: ingredientsError,
+  } = api.ingredient.getAll.useQuery(undefined, {
     enabled: status === "authenticated" && session?.user?.role === "admin",
   });
-  
+
   // Fetch all unit categories
   const { data: unitCategories } = api.unit.getAllGrouped.useQuery(undefined, {
     enabled: status === "authenticated" && session?.user?.role === "admin",
@@ -142,16 +146,13 @@ export default function NewDishPage() {
   };
 
   const addIngredient = () => {
-    setIngredients([
-      ...ingredients,
-      {
-        ingredient_id: "",
-        quantity: 1,
-        unit: "",
-        unit_id: "",
-        optional: false,
-      },
-    ]);
+    const newIngredient: DishIngredient = {
+      ingredient_id: "",
+      quantity: 1,
+      unit: "",
+      optional: false,
+    };
+    setIngredients([...ingredients, newIngredient]);
   };
 
   const removeIngredient = (index: number) => {
@@ -397,24 +398,54 @@ export default function NewDishPage() {
                 </TableHeader>
                 <TableBody>
                   {ingredients.map((ingredient, index) => (
-                    <TableRow key={index}>
+                    <TableRow key={`ingredient-${index}`}>
                       <TableCell>
                         <Select
-                          value={ingredient.ingredient_id}
+                          value={ingredient.ingredient_id || undefined}
                           onValueChange={(v) => {
-                            updateIngredient(index, "ingredient_id", v);
-                            // Auto-select default unit when ingredient is selected
-                            const selectedIng = allIngredients?.find((ing) => ing.id === v);
-                            if (selectedIng?.unit) {
-                              updateIngredient(index, "unit_id", selectedIng.unit.id);
-                              updateIngredient(index, "unit", selectedIng.unit.symbol);
-                            }
+                            // Update all at once to avoid multiple re-renders
+                            const selectedIng = allIngredients?.find(
+                              (ing) => ing.id === v,
+                            );
+                            const updated = [...ingredients];
+                            updated[index] = {
+                              ...updated[index],
+                              ingredient_id: v,
+                              unit_id: selectedIng?.unit?.id || "",
+                              unit: selectedIng?.unit?.symbol || "",
+                            };
+                            setIngredients(updated);
                           }}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder={t("action.select")} />
+                            <SelectValue placeholder={t("action.select")}>
+                              {ingredient.ingredient_id &&
+                                allIngredients?.find(
+                                  (ing) => ing.id === ingredient.ingredient_id,
+                                )?.name_vi}
+                            </SelectValue>
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent
+                            onPointerDownOutside={(e) => e.preventDefault()}
+                          >
+                            {ingredientsLoading && (
+                              <div className="text-muted-foreground p-2 text-sm">
+                                Loading...
+                              </div>
+                            )}
+                            {ingredientsError && (
+                              <div className="p-2 text-sm text-red-500">
+                                Error loading ingredients
+                              </div>
+                            )}
+                            {!ingredientsLoading &&
+                              !ingredientsError &&
+                              (!allIngredients ||
+                                allIngredients.length === 0) && (
+                                <div className="text-muted-foreground p-2 text-sm">
+                                  No ingredients found
+                                </div>
+                              )}
                             {allIngredients?.map((ing) => (
                               <SelectItem key={ing.id} value={ing.id}>
                                 {language === "vi"
@@ -443,25 +474,31 @@ export default function NewDishPage() {
                       <TableCell>
                         {(() => {
                           const selectedIngredient = allIngredients?.find(
-                            (ing) => ing.id === ingredient.ingredient_id
+                            (ing) => ing.id === ingredient.ingredient_id,
                           );
                           const ingredientUnit = selectedIngredient?.unit;
                           const compatibleUnits = ingredientUnit
-                            ? unitCategories
-                                ?.find((cat: any) => cat.id === ingredientUnit.category_id)
-                                ?.units || []
+                            ? unitCategories?.find(
+                                (cat: any) =>
+                                  cat.id === ingredientUnit.category_id,
+                              )?.units || []
                             : [];
 
                           return (
                             <Select
-                              value={ingredient.unit_id || ""}
+                              value={ingredient.unit_id || undefined}
                               onValueChange={(v) => {
-                                updateIngredient(index, "unit_id", v);
-                                // Also update legacy unit field with symbol
-                                const unit = compatibleUnits.find((u: any) => u.id === v);
-                                if (unit) {
-                                  updateIngredient(index, "unit", unit.symbol);
-                                }
+                                // Update both unit_id and unit at once
+                                const unit = compatibleUnits.find(
+                                  (u: any) => u.id === v,
+                                );
+                                const updated = [...ingredients];
+                                updated[index] = {
+                                  ...updated[index],
+                                  unit_id: v,
+                                  unit: unit?.symbol || "",
+                                };
+                                setIngredients(updated);
                               }}
                               disabled={!ingredient.ingredient_id}
                             >
@@ -471,8 +508,12 @@ export default function NewDishPage() {
                               <SelectContent>
                                 {compatibleUnits.map((unit: any) => (
                                   <SelectItem key={unit.id} value={unit.id}>
-                                    {unit.symbol} - {language === "vi" ? unit.name_vi : unit.name_en}
-                                    {ingredientUnit?.id === unit.id && " (default)"}
+                                    {unit.symbol} -{" "}
+                                    {language === "vi"
+                                      ? unit.name_vi
+                                      : unit.name_en}
+                                    {ingredientUnit?.id === unit.id &&
+                                      " (default)"}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
