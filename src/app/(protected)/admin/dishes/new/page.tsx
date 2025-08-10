@@ -33,7 +33,8 @@ import {
 interface DishIngredient {
   ingredient_id: string;
   quantity: number;
-  unit: string;
+  unit: string; // Legacy field
+  unit_id?: string; // New unit reference
   notes?: string;
   optional?: boolean;
 }
@@ -64,6 +65,11 @@ export default function NewDishPage() {
 
   // Fetch all ingredients (for dropdown)
   const { data: allIngredients } = api.ingredient.getAll.useQuery(undefined, {
+    enabled: status === "authenticated" && session?.user?.role === "admin",
+  });
+  
+  // Fetch all unit categories
+  const { data: unitCategories } = api.unit.getAllGrouped.useQuery(undefined, {
     enabled: status === "authenticated" && session?.user?.role === "admin",
   });
 
@@ -141,7 +147,8 @@ export default function NewDishPage() {
       {
         ingredient_id: "",
         quantity: 1,
-        unit: "g",
+        unit: "",
+        unit_id: "",
         optional: false,
       },
     ]);
@@ -394,9 +401,15 @@ export default function NewDishPage() {
                       <TableCell>
                         <Select
                           value={ingredient.ingredient_id}
-                          onValueChange={(v) =>
-                            updateIngredient(index, "ingredient_id", v)
-                          }
+                          onValueChange={(v) => {
+                            updateIngredient(index, "ingredient_id", v);
+                            // Auto-select default unit when ingredient is selected
+                            const selectedIng = allIngredients?.find((ing) => ing.id === v);
+                            if (selectedIng?.unit) {
+                              updateIngredient(index, "unit_id", selectedIng.unit.id);
+                              updateIngredient(index, "unit", selectedIng.unit.symbol);
+                            }
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder={t("action.select")} />
@@ -428,12 +441,44 @@ export default function NewDishPage() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Input
-                          value={ingredient.unit}
-                          onChange={(e) =>
-                            updateIngredient(index, "unit", e.target.value)
-                          }
-                        />
+                        {(() => {
+                          const selectedIngredient = allIngredients?.find(
+                            (ing) => ing.id === ingredient.ingredient_id
+                          );
+                          const ingredientUnit = selectedIngredient?.unit;
+                          const compatibleUnits = ingredientUnit
+                            ? unitCategories
+                                ?.find((cat: any) => cat.id === ingredientUnit.category_id)
+                                ?.units || []
+                            : [];
+
+                          return (
+                            <Select
+                              value={ingredient.unit_id || ""}
+                              onValueChange={(v) => {
+                                updateIngredient(index, "unit_id", v);
+                                // Also update legacy unit field with symbol
+                                const unit = compatibleUnits.find((u: any) => u.id === v);
+                                if (unit) {
+                                  updateIngredient(index, "unit", unit.symbol);
+                                }
+                              }}
+                              disabled={!ingredient.ingredient_id}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={t("action.select")} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {compatibleUnits.map((unit: any) => (
+                                  <SelectItem key={unit.id} value={unit.id}>
+                                    {unit.symbol} - {language === "vi" ? unit.name_vi : unit.name_en}
+                                    {ingredientUnit?.id === unit.id && " (default)"}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         <Input

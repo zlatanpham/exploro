@@ -122,33 +122,42 @@ model Ingredient {
     name_vi          String           @unique @db.VarChar(255)
     name_en          String?          @db.VarChar(255)
     category         String           @db.VarChar(100) // vegetables, meat, spices, etc.
-    default_unit     String           @db.VarChar(50) // kg, g, ml, etc.
-    current_price    Decimal          @db.Decimal(10, 2) // in VND
+    default_unit     String?          @db.VarChar(50) // legacy field, to be removed after migration
+    unit_id          String?          // foreign key to Unit table
+    current_price    Decimal          @db.Decimal(10, 2) // in VND per unit
+    density          Decimal?         @db.Decimal(10, 3) // g/ml for volume to mass conversion
     price_updated_at DateTime         @default(now())
     seasonal_flag    Boolean          @default(false)
     created_at       DateTime         @default(now())
     updated_at       DateTime         @updatedAt
+    unit             Unit?            @relation("IngredientUnit", fields: [unit_id], references: [id])
     DishIngredient   DishIngredient[]
     PriceHistory     PriceHistory[]
 
     @@index([name_vi])
     @@index([category])
+    @@index([unit_id])
 }
 
 model DishIngredient {
-    id            String     @id @default(cuid())
-    dish_id       String
-    ingredient_id String
-    quantity      Decimal    @db.Decimal(10, 3)
-    unit          String     @db.VarChar(50) // can override default unit
-    notes         String?    @db.Text
-    optional      Boolean    @default(false)
-    dish          Dish       @relation(fields: [dish_id], references: [id], onDelete: Cascade)
-    ingredient    Ingredient @relation(fields: [ingredient_id], references: [id])
+    id                String     @id @default(cuid())
+    dish_id           String
+    ingredient_id     String
+    quantity          Decimal    @db.Decimal(10, 3)
+    unit              String?    @db.VarChar(50) // legacy field, to be removed after migration
+    unit_id           String?    // foreign key to Unit table
+    converted_quantity Decimal?  @db.Decimal(10, 3) // quantity converted to ingredient's base unit
+    conversion_factor Decimal?   @db.Decimal(20, 10) // factor used for conversion
+    notes             String?    @db.Text
+    optional          Boolean    @default(false)
+    dish              Dish       @relation(fields: [dish_id], references: [id], onDelete: Cascade)
+    ingredient        Ingredient @relation(fields: [ingredient_id], references: [id])
+    unit_ref          Unit?      @relation("DishIngredientUnit", fields: [unit_id], references: [id])
 
     @@unique([dish_id, ingredient_id])
     @@index([dish_id])
     @@index([ingredient_id])
+    @@index([unit_id])
 }
 
 model Tag {
@@ -236,11 +245,64 @@ model PriceHistory {
     id            String     @id @default(cuid())
     ingredient_id String
     price         Decimal    @db.Decimal(10, 2)
+    unit_id       String?    // Added for unit tracking
     recorded_at   DateTime   @default(now())
     ingredient    Ingredient @relation(fields: [ingredient_id], references: [id], onDelete: Cascade)
+    unit          Unit?      @relation(fields: [unit_id], references: [id])
 
     @@index([ingredient_id])
     @@index([recorded_at])
+}
+
+// Unit Management Models
+
+model UnitCategory {
+    id          String   @id @default(cuid())
+    name        String   @unique @db.VarChar(50) // mass, volume, count, etc.
+    description String?  @db.Text
+    created_at  DateTime @default(now())
+    units       Unit[]
+
+    @@index([name])
+}
+
+model Unit {
+    id                   String           @id @default(cuid())
+    category_id          String
+    symbol               String           @unique @db.VarChar(20) // kg, g, ml, etc.
+    name_vi              String           @db.VarChar(100) // kilogram, gram, etc.
+    name_en              String           @db.VarChar(100)
+    plural_vi            String?          @db.VarChar(100)
+    plural_en            String?          @db.VarChar(100)
+    is_base_unit         Boolean          @default(false) // base unit for the category
+    factor_to_base       Decimal          @db.Decimal(20, 10) // conversion factor to base unit
+    created_at           DateTime         @default(now())
+    category             UnitCategory     @relation(fields: [category_id], references: [id])
+    
+    // Relations
+    ingredients          Ingredient[]     @relation("IngredientUnit")
+    dish_ingredients     DishIngredient[] @relation("DishIngredientUnit")
+    price_histories      PriceHistory[]
+    conversions_from     UnitConversion[] @relation("FromUnit")
+    conversions_to       UnitConversion[] @relation("ToUnit")
+
+    @@index([category_id])
+    @@index([symbol])
+}
+
+model UnitConversion {
+    id             String   @id @default(cuid())
+    from_unit_id   String
+    to_unit_id     String
+    factor         Decimal  @db.Decimal(20, 10) // multiplication factor
+    is_direct      Boolean  @default(true) // direct conversion or calculated
+    created_at     DateTime @default(now())
+    from_unit      Unit     @relation("FromUnit", fields: [from_unit_id], references: [id])
+    to_unit        Unit     @relation("ToUnit", fields: [to_unit_id], references: [id])
+
+    @@unique([from_unit_id, to_unit_id])
+    @@index([from_unit_id])
+    @@index([to_unit_id])
 }
 
 // API Key Management Models

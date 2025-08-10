@@ -257,9 +257,20 @@ export default function DishDetailPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        {di.quantity.toString()} {di.unit}
-                        <div className="text-xs text-muted-foreground">
-                          {formatPrice(toNumber(di.quantity) * toNumber(di.ingredient.current_price))}
+                        <div>
+                          {di.quantity.toString()} {di.unit_ref?.symbol || di.unit}
+                        </div>
+                        {di.converted_quantity && di.unit_ref?.id !== di.ingredient.unit?.id && (
+                          <div className="text-xs text-muted-foreground">
+                            = {toNumber(di.converted_quantity).toFixed(3)} {di.ingredient.unit?.symbol}
+                          </div>
+                        )}
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {formatPrice(
+                            di.converted_quantity 
+                              ? toNumber(di.converted_quantity) * toNumber(di.ingredient.current_price)
+                              : toNumber(di.quantity) * toNumber(di.ingredient.current_price)
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

@@ -47,20 +47,7 @@ const INGREDIENT_CATEGORIES = [
   { value: "other", label_vi: "Khác", label_en: "Other" },
 ];
 
-const UNITS = [
-  { value: "kg", label: "kg" },
-  { value: "g", label: "g" },
-  { value: "l", label: "lít" },
-  { value: "ml", label: "ml" },
-  { value: "cái", label: "cái" },
-  { value: "quả", label: "quả" },
-  { value: "bó", label: "bó" },
-  { value: "nắm", label: "nắm" },
-  { value: "thìa", label: "thìa" },
-  { value: "chén", label: "chén" },
-  { value: "gói", label: "gói" },
-  { value: "hộp", label: "hộp" },
-];
+// Units are now loaded from database
 
 // Helper function to safely convert Decimal to number
 const toSafeNumber = (value: any): number => {
@@ -82,7 +69,9 @@ export default function IngredientsPage() {
     name_en: "",
     category: "",
     default_unit: "",
+    unit_id: "",
     current_price: 0,
+    density: null as number | null,
     seasonal_flag: false,
   });
 
@@ -94,6 +83,7 @@ export default function IngredientsPage() {
   }, [session, status, router]);
 
   const { data: ingredients, refetch } = api.ingredient.getAll.useQuery();
+  const { data: unitCategories } = api.unit.getAllGrouped.useQuery();
   const createIngredient = api.ingredient.create.useMutation({
     onSuccess: () => {
       toast.success(t("message.success"));
@@ -134,20 +124,30 @@ export default function IngredientsPage() {
       name_en: "",
       category: "",
       default_unit: "",
+      unit_id: "",
       current_price: 0,
+      density: null,
       seasonal_flag: false,
     });
   };
 
   const handleCreate = () => {
-    void createIngredient.mutate(formData);
+    void createIngredient.mutate({
+      ...formData,
+      unit_id: formData.unit_id || undefined,
+      density: formData.density ?? undefined,
+    });
   };
 
   const handleUpdate = () => {
     if (!editingIngredient) return;
     void updateIngredient.mutate({
       id: editingIngredient.id,
-      data: formData,
+      data: {
+        ...formData,
+        unit_id: formData.unit_id || undefined,
+        density: formData.density ?? undefined,
+      },
     });
   };
 
@@ -157,8 +157,10 @@ export default function IngredientsPage() {
       name_vi: ingredient.name_vi,
       name_en: ingredient.name_en ?? "",
       category: ingredient.category,
-      default_unit: ingredient.default_unit,
+      default_unit: ingredient.default_unit ?? "",
+      unit_id: ingredient.unit_id ?? "",
       current_price: toSafeNumber(ingredient.current_price),
+      density: ingredient.density ? toSafeNumber(ingredient.density) : null,
       seasonal_flag: ingredient.seasonal_flag,
     });
   };
@@ -274,7 +276,7 @@ export default function IngredientsPage() {
                     )?.[language === "vi" ? "label_vi" : "label_en"] ??
                       ingredient.category}
                   </TableCell>
-                  <TableCell>{ingredient.default_unit}</TableCell>
+                  <TableCell>{ingredient.unit?.symbol || ingredient.default_unit || '-'}</TableCell>
                   <TableCell>
                     {formatPrice(toSafeNumber(ingredient.current_price))}
                   </TableCell>
@@ -377,23 +379,57 @@ export default function IngredientsPage() {
             <div className="grid gap-2">
               <Label htmlFor="unit">{t("ingredient.unit")} *</Label>
               <Select
-                value={formData.default_unit}
+                value={formData.unit_id}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, default_unit: value })
+                  setFormData({ ...formData, unit_id: value })
                 }
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={t("ingredient.selectUnit")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {UNITS.map((unit) => (
-                    <SelectItem key={unit.value} value={unit.value}>
-                      {unit.label}
-                    </SelectItem>
+                  {unitCategories?.map((category: any) => (
+                    <div key={category.id}>
+                      <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                        {category.name.charAt(0).toUpperCase() + category.name.slice(1)}
+                      </div>
+                      {category.units.map((unit: any) => (
+                        <SelectItem key={unit.id} value={unit.id}>
+                          {unit.symbol} - {language === "vi" ? unit.name_vi : unit.name_en}
+                        </SelectItem>
+                      ))}
+                    </div>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+            {/* Show density field for volume/mass units */}
+            {formData.unit_id && (() => {
+              const selectedUnit = unitCategories?.flatMap((c: any) => c.units).find((u: any) => u.id === formData.unit_id);
+              const unitCategory = unitCategories?.find((c: any) => c.id === selectedUnit?.category_id);
+              return unitCategory?.name === 'volume' || unitCategory?.name === 'mass';
+            })() && (
+              <div className="grid gap-2">
+                <Label htmlFor="density">
+                  {t("ingredient.density")} (g/ml)
+                  <span className="text-sm text-muted-foreground ml-2">
+                    {t("ingredient.densityHint")}
+                  </span>
+                </Label>
+                <Input
+                  id="density"
+                  type="number"
+                  step="0.001"
+                  value={formData.density || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      density: e.target.value ? parseFloat(e.target.value) : null,
+                    })
+                  }
+                />
+              </div>
+            )}
             <div className="grid gap-2">
               <Label htmlFor="price">{t("ingredient.price")} (VND) *</Label>
               <Input
@@ -437,7 +473,7 @@ export default function IngredientsPage() {
               disabled={
                 !formData.name_vi ||
                 !formData.category ||
-                !formData.default_unit ||
+                !formData.unit_id ||
                 formData.current_price <= 0
               }
             >

@@ -6,8 +6,10 @@ const ingredientInput = z.object({
   name_vi: z.string().min(1).max(255),
   name_en: z.string().max(255).optional(),
   category: z.string().min(1).max(100),
-  default_unit: z.string().min(1).max(50),
+  default_unit: z.string().min(1).max(50).optional(), // Legacy field
+  unit_id: z.string().optional(), // New unit reference
   current_price: z.number().positive(),
+  density: z.number().positive().optional(), // For mass-volume conversions
   seasonal_flag: z.boolean().optional(),
 });
 
@@ -22,6 +24,9 @@ export const ingredientRouter = createTRPCRouter({
     }
 
     return ctx.db.ingredient.findMany({
+      include: {
+        unit: true,
+      },
       orderBy: { name_vi: "asc" },
     });
   }),
@@ -75,6 +80,7 @@ export const ingredientRouter = createTRPCRouter({
         data: {
           ingredient_id: ingredient.id,
           price: input.current_price,
+          unit_id: input.unit_id,
         },
       });
 
@@ -128,6 +134,7 @@ export const ingredientRouter = createTRPCRouter({
           data: {
             ingredient_id: input.id,
             price: input.data.current_price,
+            unit_id: input.data.unit_id || currentIngredient.unit_id,
           },
         });
       }
@@ -192,6 +199,7 @@ export const ingredientRouter = createTRPCRouter({
               data: {
                 ingredient_id: id,
                 price,
+                unit_id: currentIngredient.unit_id,
               },
             });
           }

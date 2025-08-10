@@ -21,7 +21,8 @@ const dishInput = z.object({
 const dishIngredientInput = z.object({
   ingredient_id: z.string(),
   quantity: z.number().positive(),
-  unit: z.string().min(1).max(50),
+  unit: z.string().min(1).max(50).optional(), // Legacy field
+  unit_id: z.string().optional(), // New unit reference
   notes: z.string().optional(),
   optional: z.boolean().optional(),
 });
@@ -115,7 +116,12 @@ export const dishRouter = createTRPCRouter({
         include: {
           DishIngredient: {
             include: {
-              ingredient: true,
+              ingredient: {
+                include: {
+                  unit: true,
+                },
+              },
+              unit_ref: true,
             },
           },
           DishTag: {
@@ -138,10 +144,32 @@ export const dishRouter = createTRPCRouter({
         });
       }
 
-      // Calculate total cost
-      const totalCost = dish.DishIngredient.reduce((sum, di) => {
-        return sum + di.quantity.toNumber() * di.ingredient.current_price.toNumber();
-      }, 0);
+      // Calculate total cost with unit conversion
+      const { UnitConversionService } = await import('../../services/unitConversion');
+      const conversionService = new UnitConversionService(ctx.db);
+      
+      let totalCost = 0;
+      for (const di of dish.DishIngredient) {
+        let quantityInBaseUnit = di.quantity.toNumber();
+        
+        // Apply unit conversion if units are different
+        if (di.unit_id && di.ingredient.unit_id && di.unit_id !== di.ingredient.unit_id) {
+          const result = await conversionService.convert(
+            di.quantity,
+            di.unit_id,
+            di.ingredient.unit_id
+          );
+          
+          if (result.success && result.convertedValue) {
+            quantityInBaseUnit = result.convertedValue.toNumber();
+          } else {
+            // Log warning but continue with original quantity
+            console.warn(`Failed to convert from ${di.unit_id} to ${di.ingredient.unit_id}:`, result.error);
+          }
+        }
+        
+        totalCost += quantityInBaseUnit * di.ingredient.current_price.toNumber();
+      }
 
       return {
         ...dish,
@@ -166,11 +194,55 @@ export const dishRouter = createTRPCRouter({
         });
       }
 
+      // Import conversion service
+      const { UnitConversionService } = await import('../../services/unitConversion');
+      const conversionService = new UnitConversionService(ctx.db);
+      
+      // Process ingredients with unit conversion
+      const processedIngredients = await Promise.all(
+        input.ingredients.map(async (ing) => {
+          const ingredient = await ctx.db.ingredient.findUnique({
+            where: { id: ing.ingredient_id },
+            include: { unit: true },
+          });
+          
+          if (!ingredient) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `Ingredient ${ing.ingredient_id} not found`,
+            });
+          }
+          
+          let convertedQuantity = null;
+          let conversionFactor = null;
+          
+          // Calculate conversion if units are different
+          if (ing.unit_id && ingredient.unit_id && ing.unit_id !== ingredient.unit_id) {
+            const result = await conversionService.convert(
+              ing.quantity,
+              ing.unit_id,
+              ingredient.unit_id
+            );
+            
+            if (result.success && result.convertedValue) {
+              convertedQuantity = result.convertedValue;
+              conversionFactor = result.convertedValue.div(ing.quantity);
+            }
+          }
+          
+          return {
+            ...ing,
+            converted_quantity: convertedQuantity,
+            conversion_factor: conversionFactor,
+          };
+        })
+      );
+      
       const dish = await ctx.db.dish.create({
         data: {
           ...input.dish,
           DishIngredient: {
-            create: input.ingredients,
+            create: processedIngredients,
           },
           ...(input.tags && input.tags.length > 0
             ? {
@@ -183,7 +255,12 @@ export const dishRouter = createTRPCRouter({
         include: {
           DishIngredient: {
             include: {
-              ingredient: true,
+              ingredient: {
+                include: {
+                  unit: true,
+                },
+              },
+              unit_ref: true,
             },
           },
           DishTag: {
@@ -216,24 +293,66 @@ export const dishRouter = createTRPCRouter({
       }
 
       // Update dish basic info
-      const dish = await ctx.db.dish.update({
+      await ctx.db.dish.update({
         where: { id: input.id },
         data: input.dish,
       });
 
       // Update ingredients if provided
       if (input.ingredients) {
+        // Import conversion service
+        const { UnitConversionService } = await import('../../services/unitConversion');
+        const conversionService = new UnitConversionService(ctx.db);
+        
+        // Process ingredients with unit conversion
+        const processedIngredients = await Promise.all(
+          input.ingredients.map(async (ing) => {
+            const ingredient = await ctx.db.ingredient.findUnique({
+              where: { id: ing.ingredient_id },
+              include: { unit: true },
+            });
+            
+            if (!ingredient) {
+              throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `Ingredient ${ing.ingredient_id} not found`,
+              });
+            }
+            
+            let convertedQuantity = null;
+            let conversionFactor = null;
+            
+            // Calculate conversion if units are different
+            if (ing.unit_id && ingredient.unit_id && ing.unit_id !== ingredient.unit_id) {
+              const result = await conversionService.convert(
+                ing.quantity,
+                ing.unit_id,
+                ingredient.unit_id
+              );
+              
+              if (result.success && result.convertedValue) {
+                convertedQuantity = result.convertedValue;
+                conversionFactor = result.convertedValue.div(ing.quantity);
+              }
+            }
+            
+            return {
+              ...ing,
+              dish_id: input.id,
+              converted_quantity: convertedQuantity,
+              conversion_factor: conversionFactor,
+            };
+          })
+        );
+        
         // Delete existing ingredients
         await ctx.db.dishIngredient.deleteMany({
           where: { dish_id: input.id },
         });
 
-        // Create new ingredients
+        // Create new ingredients with conversion data
         await ctx.db.dishIngredient.createMany({
-          data: input.ingredients.map((ing) => ({
-            ...ing,
-            dish_id: input.id,
-          })),
+          data: processedIngredients,
         });
       }
 
@@ -260,7 +379,12 @@ export const dishRouter = createTRPCRouter({
         include: {
           DishIngredient: {
             include: {
-              ingredient: true,
+              ingredient: {
+                include: {
+                  unit: true,
+                },
+              },
+              unit_ref: true,
             },
           },
           DishTag: {
