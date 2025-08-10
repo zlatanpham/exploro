@@ -11,6 +11,7 @@ import { dishRouter } from "./routers/dish";
 import { ingredientRouter } from "./routers/ingredient";
 import { tagRouter } from "./routers/tag";
 import { menuRouter } from "./routers/menu";
+import { apiKeyRouter } from "./routers/apiKey";
 
 export const appRouter = createTRPCRouter({
   organization: organizationRouter,
@@ -19,6 +20,7 @@ export const appRouter = createTRPCRouter({
   ingredient: ingredientRouter,
   tag: tagRouter,
   menu: menuRouter,
+  apiKey: apiKeyRouter,
 });
 
 // export type definition of API

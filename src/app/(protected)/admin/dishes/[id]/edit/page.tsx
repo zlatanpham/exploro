@@ -192,7 +192,7 @@ export default function EditDishPage({
     value: any,
   ) => {
     const updated = [...ingredients];
-    updated[index] = { ...updated[index], [field]: value };
+    updated[index] = { ...updated[index], [field]: value } as DishIngredient;
     setIngredients(updated);
   };
 

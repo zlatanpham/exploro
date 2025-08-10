@@ -2,17 +2,18 @@
 
 import * as React from "react";
 import { useSession } from "next-auth/react";
-import { 
-  Send, 
-  GithubIcon, 
-  ComponentIcon, 
-  ChefHat, 
-  Carrot, 
-  Calendar, 
-  Heart, 
-  Tag, 
+import {
+  Send,
+  GithubIcon,
+  ComponentIcon,
+  ChefHat,
+  Carrot,
+  Calendar,
+  Heart,
+  Tag,
   Shield,
-  Globe
+  Globe,
+  Key,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -72,7 +73,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: t("nav.admin") + " - " + t("nav.tags"),
           url: "/admin/tags",
           icon: Tag,
-        }
+        },
+        {
+          title: t("nav.admin") + " - API Keys",
+          url: "/admin/api-keys",
+          icon: Key,
+        },
       );
     }
 
@@ -122,7 +128,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">Exploro</span>
-                  <span className="truncate text-xs">Vietnamese Meal Planner</span>
+                  <span className="truncate text-xs">
+                    Vietnamese Meal Planner
+                  </span>
                 </div>
               </Link>
             </SidebarMenuButton>

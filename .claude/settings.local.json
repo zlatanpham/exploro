@@ -20,7 +20,10 @@
       "Bash(./fix-imports.sh)",
       "Bash(npm run lint:*)",
       "Bash(./fix-eslint.sh:*)",
-      "Bash(./fix-final-issues.sh:*)"
+      "Bash(./fix-final-issues.sh:*)",
+      "Bash(test:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx prisma:*)"
     ],
     "deny": []
   }

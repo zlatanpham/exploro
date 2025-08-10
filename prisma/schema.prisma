@@ -34,6 +34,7 @@ model Organization {
     updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
     User               User?                @relation(fields: [owner_user_id], references: [id], onUpdate: NoAction, map: "fk_owner_user")
     OrganizationMember OrganizationMember[]
+    ApiKey             ApiKey[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -77,6 +78,7 @@ model User {
     Session                Session[]
     Menu                   Menu[]
     FavoriteDish           FavoriteDish[]
+    ApiKey                 ApiKey[]
 }
 
 model VerificationToken {
@@ -239,4 +241,52 @@ model PriceHistory {
 
     @@index([ingredient_id])
     @@index([recorded_at])
+}
+
+// API Key Management Models
+
+model ApiKey {
+    id              String         @id @default(cuid())
+    organization_id String         @db.Uuid
+    name            String         @db.VarChar(255)
+    key_hash        String         @unique
+    permissions     String[]       @default(["read", "write"]) // ['read', 'write', 'admin']
+    last_used_at    DateTime?
+    expires_at      DateTime?
+    is_active       Boolean        @default(true)
+    created_by      String
+    created_at      DateTime       @default(now())
+    revoked_at      DateTime?
+    revoked_by      String?
+    revoke_reason   String?
+    usage_count     Int            @default(0)
+
+    organization    Organization   @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+    user            User           @relation(fields: [created_by], references: [id])
+    usage_logs      ApiUsageLog[]
+
+    @@index([organization_id])
+    @@index([key_hash])
+    @@index([expires_at])
+    @@index([is_active])
+}
+
+model ApiUsageLog {
+    id              String    @id @default(cuid())
+    api_key_id      String
+    endpoint        String    @db.VarChar(255)
+    method          String    @db.VarChar(10)
+    status_code     Int
+    response_time   Int       // milliseconds
+    request_body    Json?     // for debugging failed requests
+    error_message   String?
+    ip_address      String?   @db.VarChar(45)
+    user_agent      String?   @db.Text
+    created_at      DateTime  @default(now())
+
+    api_key         ApiKey    @relation(fields: [api_key_id], references: [id], onDelete: Cascade)
+
+    @@index([api_key_id, created_at])
+    @@index([endpoint, created_at])
+    @@index([status_code, created_at])
 }

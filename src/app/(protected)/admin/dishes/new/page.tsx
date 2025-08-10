@@ -157,7 +157,7 @@ export default function NewDishPage() {
     value: any,
   ) => {
     const updated = [...ingredients];
-    updated[index] = { ...updated[index], [field]: value };
+    updated[index] = { ...updated[index], [field]: value } as DishIngredient;
     setIngredients(updated);
   };
 
