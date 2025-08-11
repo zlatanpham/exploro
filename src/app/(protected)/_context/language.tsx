@@ -38,7 +38,7 @@ const translations = {
     vi: "Quản trị",
     en: "Admin",
   },
-  
+
   // Common actions
   "action.create": {
     vi: "Tạo mới",
@@ -76,7 +76,7 @@ const translations = {
     vi: "Nhân bản",
     en: "Duplicate",
   },
-  
+
   // Dish fields
   "dish.name": {
     vi: "Tên món",
@@ -126,7 +126,7 @@ const translations = {
     vi: "Tổng chi phí",
     en: "Total cost",
   },
-  
+
   // Ingredient fields
   "ingredient.name": {
     vi: "Tên nguyên liệu",
@@ -156,7 +156,7 @@ const translations = {
     vi: "Cập nhật lần cuối",
     en: "Last updated",
   },
-  
+
   // Menu fields
   "menu.name": {
     vi: "Tên thực đơn",
@@ -198,7 +198,7 @@ const translations = {
     vi: "Danh sách mua sắm",
     en: "Shopping list",
   },
-  
+
   // Meal groups
   "meal.breakfast": {
     vi: "Bữa sáng",
@@ -216,7 +216,7 @@ const translations = {
     vi: "Ăn vặt",
     en: "Snack",
   },
-  
+
   // Time units
   "time.minutes": {
     vi: "phút",
@@ -230,7 +230,7 @@ const translations = {
     vi: "người",
     en: "people",
   },
-  
+
   // Messages
   "message.loading": {
     vi: "Đang tải...",
@@ -356,9 +356,63 @@ const translations = {
     vi: "Dùng trong",
     en: "Used in",
   },
+  "menu.details": {
+    vi: "Chi tiết",
+    en: "Details",
+  },
+  "menu.basicInfo": {
+    vi: "Thông tin cơ bản",
+    en: "Basic information",
+  },
+  "menu.startDate": {
+    vi: "Ngày bắt đầu",
+    en: "Start date",
+  },
+  "menu.endDate": {
+    vi: "Ngày kết thúc",
+    en: "End date",
+  },
+  "menu.weeklyPlan": {
+    vi: "Kế hoạch tuần",
+    en: "Weekly plan",
+  },
+  "menu.addDish": {
+    vi: "Thêm món ăn",
+    en: "Add dish",
+  },
+  "menu.searchAndAddDishes": {
+    vi: "Tìm kiếm và thêm món ăn vào thực đơn",
+    en: "Search and add dishes to the menu",
+  },
+  "menu.selectDay": {
+    vi: "Chọn ngày",
+    en: "Select day",
+  },
+  "menu.selectMeal": {
+    vi: "Chọn bữa ăn",
+    en: "Select meal",
+  },
+  "menu.searchDishes": {
+    vi: "Tìm kiếm món ăn...",
+    en: "Search dishes...",
+  },
+  "menu.noDishesForDay": {
+    vi: "Chưa có món ăn cho ngày này",
+    en: "No dishes for this day",
+  },
+  "menu.allDishes": {
+    vi: "Tất cả món ăn",
+    en: "All dishes",
+  },
+  "menu.noDishes": {
+    vi: "Chưa có món ăn nào trong thực đơn",
+    en: "No dishes in the menu yet",
+  },
 };
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined,
+);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();

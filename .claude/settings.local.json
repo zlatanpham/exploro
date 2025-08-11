@@ -23,7 +23,8 @@
       "Bash(./fix-final-issues.sh:*)",
       "Bash(test:*)",
       "Bash(npx tsx:*)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }
