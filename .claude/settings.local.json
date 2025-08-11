@@ -24,7 +24,9 @@
       "Bash(test:*)",
       "Bash(npx tsx:*)",
       "Bash(npx prisma:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx prettier:*)"
     ],
     "deny": []
   }
