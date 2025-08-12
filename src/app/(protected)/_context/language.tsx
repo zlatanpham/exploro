@@ -260,6 +260,10 @@ const translations = {
     vi: "Tất cả",
     en: "All",
   },
+  "message.basicInfo": {
+    vi: "Thông tin cơ bản",
+    en: "Basic information",
+  },
   "action.actions": {
     vi: "Hành động",
     en: "Actions",
@@ -287,6 +291,10 @@ const translations = {
   "action.browse": {
     vi: "Duyệt",
     en: "Browse",
+  },
+  "action.select": {
+    vi: "Chọn",
+    en: "Select",
   },
   "menu.browsePublic": {
     vi: "Duyệt thực đơn công khai",

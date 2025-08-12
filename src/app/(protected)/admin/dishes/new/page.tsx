@@ -140,7 +140,10 @@ export default function NewDishPage() {
         source_url: source_url || undefined,
         status: dishStatus,
       },
-      ingredients,
+      ingredients: ingredients.map(ing => ({
+        ...ing,
+        unit: ing.unit || undefined, // Convert empty strings to undefined
+      })),
       tags: selectedTags,
     });
   };
@@ -242,10 +245,10 @@ export default function NewDishPage() {
                 <Label htmlFor="difficulty">{t("dish.difficulty")} *</Label>
                 <Select
                   value={difficulty}
-                  onValueChange={(v) => setDifficulty(v as any)}
+                  onValueChange={(v) => setDifficulty(v as "easy" | "medium" | "hard")}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder={t("action.select")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="easy">
@@ -468,7 +471,7 @@ export default function NewDishPage() {
                             )
                           }
                           min={0}
-                          step={0.1}
+                          step="any"
                         />
                       </TableCell>
                       <TableCell>

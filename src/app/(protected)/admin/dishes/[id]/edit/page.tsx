@@ -108,6 +108,8 @@ export default function EditDishPage({
       setInstructionsVi(dish.instructions_vi);
       setInstructionsEn(dish.instructions_en ?? "");
       setDifficulty(dish.difficulty as "easy" | "medium" | "hard");
+      console.log('Setting difficulty to:', dish.difficulty);
+      console.log('Translation for easy:', t('dish.difficulty.easy'));
       setCookTime(dish.cook_time);
       setPrepTime(dish.prep_time ?? 15);
       setServings(dish.servings);
@@ -172,7 +174,10 @@ export default function EditDishPage({
         source_url: source_url || undefined,
         status: dishStatus,
       },
-      ingredients,
+      ingredients: ingredients.map(ing => ({
+        ...ing,
+        unit: ing.unit || undefined, // Convert empty strings to undefined
+      })),
       tags: selectedTags,
     });
   };
@@ -271,16 +276,16 @@ export default function EditDishPage({
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-              <div>
+              <div className="relative">
                 <Label htmlFor="difficulty">{t("dish.difficulty")} *</Label>
                 <Select
                   value={difficulty}
-                  onValueChange={(v) => setDifficulty(v as any)}
+                  onValueChange={(v) => setDifficulty(v as "easy" | "medium" | "hard")}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-50" position="popper">
                     <SelectItem value="easy">
                       {t("dish.difficulty.easy")}
                     </SelectItem>
@@ -473,7 +478,7 @@ export default function EditDishPage({
                           )
                         }
                         min={0}
-                        step={0.1}
+                        step="any"
                       />
                     </TableCell>
                     <TableCell>
