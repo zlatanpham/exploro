@@ -53,8 +53,11 @@ export const GET = withApiAuth(
         name_vi: true,
         name_en: true,
         category: true,
+        category_id: true,
         default_unit: true,
+        unit_id: true,
         current_price: true,
+        density: true,
         seasonal_flag: true,
         created_at: true,
         updated_at: true,
@@ -65,6 +68,7 @@ export const GET = withApiAuth(
       ingredients: ingredients.map((ingredient) => ({
         ...ingredient,
         current_price: ingredient.current_price.toNumber(),
+        density: ingredient.density?.toNumber(),
       })),
       total,
       limit,
@@ -79,9 +83,12 @@ const createIngredientSchema = z.object({
   ingredient: z.object({
     name_vi: z.string().min(1, "Vietnamese name is required").max(255),
     name_en: z.string().max(255).optional(),
-    category: z.string().min(1, "Category is required").max(100),
-    default_unit: z.string().min(1, "Default unit is required").max(50),
+    category: z.string().min(1, "Category is required").max(100).optional(), // legacy support
+    category_id: z.string().optional(), // new foreign key approach
+    default_unit: z.string().max(50).optional(), // legacy support  
+    unit_id: z.string().min(1, "Unit ID is required"), // new foreign key approach
     current_price: z.number().positive("Price must be positive"),
+    density: z.number().positive().optional(), // for mass-volume conversions
     seasonal_flag: z.boolean().optional().default(false),
   }),
 });
@@ -114,8 +121,11 @@ export const POST = withApiAuth(
             name_vi: existingIngredient.name_vi,
             name_en: existingIngredient.name_en,
             category: existingIngredient.category,
+            category_id: existingIngredient.category_id,
             default_unit: existingIngredient.default_unit,
+            unit_id: existingIngredient.unit_id,
             current_price: existingIngredient.current_price.toNumber(),
+            density: existingIngredient.density?.toNumber(),
             seasonal_flag: existingIngredient.seasonal_flag,
             created_at: existingIngredient.created_at,
             updated_at: existingIngredient.updated_at,
@@ -136,6 +146,7 @@ export const POST = withApiAuth(
       data: {
         ingredient_id: newIngredient.id,
         price: newIngredient.current_price,
+        unit_id: newIngredient.unit_id,
       },
     });
 
@@ -147,8 +158,11 @@ export const POST = withApiAuth(
           name_vi: newIngredient.name_vi,
           name_en: newIngredient.name_en,
           category: newIngredient.category,
+          category_id: newIngredient.category_id,
           default_unit: newIngredient.default_unit,
+          unit_id: newIngredient.unit_id,
           current_price: newIngredient.current_price.toNumber(),
+          density: newIngredient.density?.toNumber(),
           seasonal_flag: newIngredient.seasonal_flag,
           created_at: newIngredient.created_at,
           updated_at: newIngredient.updated_at,

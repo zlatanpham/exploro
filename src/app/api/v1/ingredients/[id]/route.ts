@@ -13,9 +13,12 @@ const updateIngredientSchema = z.object({
   ingredient: z.object({
     name_vi: z.string().min(1).max(255).optional(),
     name_en: z.string().max(255).nullable().optional(),
-    category: z.string().min(1).max(100).optional(),
-    default_unit: z.string().min(1).max(50).optional(),
+    category: z.string().min(1).max(100).optional(), // legacy support
+    category_id: z.string().optional(), // new foreign key approach
+    default_unit: z.string().max(50).optional(), // legacy support
+    unit_id: z.string().optional(), // new foreign key approach
     current_price: z.number().positive().optional(),
+    density: z.number().positive().optional(), // for mass-volume conversions
     seasonal_flag: z.boolean().optional(),
   }),
 });
@@ -46,13 +49,17 @@ export const GET = withApiAuth(
         name_vi: ingredient.name_vi,
         name_en: ingredient.name_en,
         category: ingredient.category,
+        category_id: ingredient.category_id,
         default_unit: ingredient.default_unit,
+        unit_id: ingredient.unit_id,
         current_price: ingredient.current_price.toNumber(),
+        density: ingredient.density?.toNumber(),
         seasonal_flag: ingredient.seasonal_flag,
         created_at: ingredient.created_at,
         updated_at: ingredient.updated_at,
         price_history: ingredient.PriceHistory.map((ph) => ({
           price: ph.price.toNumber(),
+          unit_id: ph.unit_id,
           recorded_at: ph.recorded_at,
         })),
       },
@@ -113,6 +120,7 @@ export const PUT = withApiAuth(
         data: {
           ingredient_id: id,
           price: updateData.current_price,
+          unit_id: updateData.unit_id || existingIngredient.unit_id,
         },
       });
     }
@@ -129,8 +137,11 @@ export const PUT = withApiAuth(
         name_vi: updatedIngredient.name_vi,
         name_en: updatedIngredient.name_en,
         category: updatedIngredient.category,
+        category_id: updatedIngredient.category_id,
         default_unit: updatedIngredient.default_unit,
+        unit_id: updatedIngredient.unit_id,
         current_price: updatedIngredient.current_price.toNumber(),
+        density: updatedIngredient.density?.toNumber(),
         seasonal_flag: updatedIngredient.seasonal_flag,
         created_at: updatedIngredient.created_at,
         updated_at: updatedIngredient.updated_at,

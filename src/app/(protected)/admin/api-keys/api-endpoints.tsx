@@ -30,16 +30,22 @@ export const getEndpoints = (origin: string): Endpoint[] => [
     response: {
       categories: [
         {
+          id: "uuid",
           value: "vegetables",
           name_vi: "Rau củ",
           name_en: "Vegetables",
           description: "Fresh vegetables and root vegetables",
+          created_at: "2024-01-01T00:00:00Z",
+          ingredients_count: 25
         },
         {
+          id: "uuid",
           value: "meat",
           name_vi: "Thịt",
           name_en: "Meat",
           description: "All types of meat including beef, pork, chicken",
+          created_at: "2024-01-01T00:00:00Z",
+          ingredients_count: 15
         },
         // ... more categories
       ],
@@ -344,9 +350,12 @@ const data = await response.json();`,
           id: "uuid",
           name_vi: "Cà chua",
           name_en: "Tomato",
-          category: "vegetable",
-          default_unit: "kg",
+          category: "vegetables", // legacy field
+          category_id: "uuid", // new foreign key
+          default_unit: "kg", // legacy field
+          unit_id: "uuid", // new foreign key
           current_price: 25000,
+          density: 1.0, // g/ml for mass-volume conversion
           seasonal_flag: false,
           created_at: "2024-01-01T00:00:00Z",
           updated_at: "2024-01-01T00:00:00Z",
@@ -384,9 +393,12 @@ const data = await response.json();`,
       ingredient: {
         name_vi: "Cà chua", // Required
         name_en: "Tomato", // Optional
-        category: "vegetables", // Required (see /api/v1/ingredients/categories)
-        default_unit: "kg", // Required (see /api/v1/ingredients/units)
+        category: "vegetables", // Optional (legacy - use category_id instead)
+        category_id: "uuid", // Recommended - foreign key to category
+        default_unit: "kg", // Optional (legacy - use unit_id instead) 
+        unit_id: "uuid", // Required - foreign key to unit
         current_price: 25000, // Required, must be positive
+        density: 1.0, // Optional - g/ml for mass-volume conversion
         seasonal_flag: false, // Optional, defaults to false
       },
     },
@@ -607,9 +619,12 @@ const result = await response.json();`,
         {
           name_vi: "Cà chua", // Required
           name_en: "Tomato", // Optional
-          category: "vegetable", // Required
-          default_unit: "kg", // Required
+          category: "vegetables", // Optional (legacy - use category_id instead)
+          category_id: "uuid", // Recommended - foreign key to category
+          default_unit: "kg", // Optional (legacy - use unit_id instead)
+          unit_id: "uuid", // Required - foreign key to unit
           current_price: 25000, // Required, must be positive
+          density: 1.0, // Optional - g/ml for mass-volume conversion
           seasonal_flag: false, // Optional, defaults to false
         },
       ], // Array of 1-50 ingredients

@@ -117,25 +117,40 @@ model Dish {
     @@index([status])
 }
 
+model IngredientCategory {
+    id          String       @id @default(cuid())
+    value       String       @unique @db.VarChar(50) // vegetables, meat, spices, etc.
+    name_vi     String       @db.VarChar(100)
+    name_en     String       @db.VarChar(100)
+    description String?      @db.Text
+    created_at  DateTime     @default(now())
+    ingredients Ingredient[]
+
+    @@index([value])
+}
+
 model Ingredient {
-    id               String           @id @default(cuid())
-    name_vi          String           @unique @db.VarChar(255)
-    name_en          String?          @db.VarChar(255)
-    category         String           @db.VarChar(100) // vegetables, meat, spices, etc.
-    default_unit     String?          @db.VarChar(50) // legacy field, to be removed after migration
-    unit_id          String?          // foreign key to Unit table
-    current_price    Decimal          @db.Decimal(10, 2) // in VND per unit
-    density          Decimal?         @db.Decimal(10, 3) // g/ml for volume to mass conversion
-    price_updated_at DateTime         @default(now())
-    seasonal_flag    Boolean          @default(false)
-    created_at       DateTime         @default(now())
-    updated_at       DateTime         @updatedAt
-    unit             Unit?            @relation("IngredientUnit", fields: [unit_id], references: [id])
+    id               String              @id @default(cuid())
+    name_vi          String              @unique @db.VarChar(255)
+    name_en          String?             @db.VarChar(255)
+    category         String?             @db.VarChar(100) // legacy field, to be removed after migration
+    category_id      String?             // foreign key to IngredientCategory table
+    default_unit     String?             @db.VarChar(50) // legacy field, to be removed after migration
+    unit_id          String?             // foreign key to Unit table
+    current_price    Decimal             @db.Decimal(10, 2) // in VND per unit
+    density          Decimal?            @db.Decimal(10, 3) // g/ml for volume to mass conversion
+    price_updated_at DateTime            @default(now())
+    seasonal_flag    Boolean             @default(false)
+    created_at       DateTime            @default(now())
+    updated_at       DateTime            @updatedAt
+    unit             Unit?               @relation("IngredientUnit", fields: [unit_id], references: [id])
+    ingredient_category IngredientCategory? @relation(fields: [category_id], references: [id])
     DishIngredient   DishIngredient[]
     PriceHistory     PriceHistory[]
 
     @@index([name_vi])
     @@index([category])
+    @@index([category_id])
     @@index([unit_id])
 }
 

@@ -11,9 +11,12 @@ const batchCreateIngredientsSchema = z.object({
       z.object({
         name_vi: z.string().min(1, "Vietnamese name is required").max(255),
         name_en: z.string().max(255).optional(),
-        category: z.string().min(1, "Category is required").max(100),
-        default_unit: z.string().min(1, "Default unit is required").max(50),
+        category: z.string().min(1, "Category is required").max(100).optional(), // legacy support
+        category_id: z.string().optional(), // new foreign key approach
+        default_unit: z.string().max(50).optional(), // legacy support
+        unit_id: z.string().min(1, "Unit ID is required"), // new foreign key approach
         current_price: z.number().positive("Price must be positive"),
+        density: z.number().positive().optional(), // for mass-volume conversions
         seasonal_flag: z.boolean().optional().default(false),
       }),
     )
@@ -59,8 +62,11 @@ export const POST = withApiAuth(
         name_vi: true,
         name_en: true,
         category: true,
+        category_id: true,
         default_unit: true,
+        unit_id: true,
         current_price: true,
+        density: true,
         seasonal_flag: true,
       },
     });
@@ -84,6 +90,7 @@ export const POST = withApiAuth(
           ingredient: {
             ...existing,
             current_price: existing.current_price.toNumber(),
+            density: existing.density?.toNumber(),
           },
           message: "Ingredient already exists",
         });
@@ -106,6 +113,7 @@ export const POST = withApiAuth(
               data: {
                 ingredient_id: newIngredient.id,
                 price: newIngredient.current_price,
+                unit_id: newIngredient.unit_id,
               },
             });
 
@@ -117,8 +125,11 @@ export const POST = withApiAuth(
                 name_vi: newIngredient.name_vi,
                 name_en: newIngredient.name_en,
                 category: newIngredient.category,
+                category_id: newIngredient.category_id,
                 default_unit: newIngredient.default_unit,
+                unit_id: newIngredient.unit_id,
                 current_price: newIngredient.current_price.toNumber(),
+                density: newIngredient.density?.toNumber(),
                 seasonal_flag: newIngredient.seasonal_flag,
               },
             });

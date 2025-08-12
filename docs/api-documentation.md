@@ -77,58 +77,85 @@ Retrieve all available ingredient categories for classification.
 {
   "categories": [
     {
+      "id": "uuid",
       "value": "vegetables",
       "name_vi": "Rau củ",
       "name_en": "Vegetables",
-      "description": "Fresh vegetables and leafy greens"
+      "description": "Fresh vegetables and root vegetables",
+      "created_at": "2024-01-01T00:00:00Z",
+      "ingredients_count": 25
     },
     {
+      "id": "uuid",
       "value": "meat",
       "name_vi": "Thịt",
       "name_en": "Meat",
-      "description": "All types of meat including poultry"
+      "description": "All types of meat including beef, pork, chicken",
+      "created_at": "2024-01-01T00:00:00Z",
+      "ingredients_count": 15
     },
     {
+      "id": "uuid",
       "value": "seafood",
       "name_vi": "Hải sản",
       "name_en": "Seafood",
-      "description": "Fish, shellfish, and other seafood"
+      "description": "Fish, shellfish, and other seafood",
+      "created_at": "2024-01-01T00:00:00Z",
+      "ingredients_count": 12
     },
     {
+      "id": "uuid",
       "value": "spices",
       "name_vi": "Gia vị",
-      "name_en": "Spices & Seasonings",
-      "description": "Spices, herbs, and seasonings"
+      "name_en": "Spices",
+      "description": "Herbs, spices, and seasonings",
+      "created_at": "2024-01-01T00:00:00Z",
+      "ingredients_count": 18
     },
     {
+      "id": "uuid",
       "value": "dairy",
       "name_vi": "Sữa và sản phẩm từ sữa",
       "name_en": "Dairy",
-      "description": "Milk and dairy products"
+      "description": "Milk and dairy products",
+      "created_at": "2024-01-01T00:00:00Z",
+      "ingredients_count": 8
     },
     {
+      "id": "uuid",
       "value": "grains",
       "name_vi": "Ngũ cốc",
-      "name_en": "Grains & Cereals",
-      "description": "Rice, noodles, and grain products"
+      "name_en": "Grains",
+      "description": "Rice, wheat, and other grains",
+      "created_at": "2024-01-01T00:00:00Z",
+      "ingredients_count": 10
     },
     {
+      "id": "uuid",
       "value": "fruits",
       "name_vi": "Trái cây",
       "name_en": "Fruits",
-      "description": "Fresh and dried fruits"
+      "description": "Fresh and dried fruits",
+      "created_at": "2024-01-01T00:00:00Z",
+      "ingredients_count": 6
     },
     {
+      "id": "uuid",
       "value": "sauces",
       "name_vi": "Nước mắm, nước chấm",
-      "name_en": "Sauces & Condiments",
-      "description": "Sauces, condiments, and dipping sauces"
+      "name_en": "Sauces",
+      "description": "Fish sauce, dipping sauces, and condiments",
+      "created_at": "2024-01-01T00:00:00Z",
+      "ingredients_count": 12
     },
     {
+      "id": "uuid",
       "value": "other",
       "name_vi": "Khác",
       "name_en": "Other",
-      "description": "Other ingredients not fitting above categories"
+      "description": "Other ingredients not in above categories",
+      "created_at": "2024-01-01T00:00:00Z",
+      "ingredients_count": 5
     }
   ],
   "total": 9
@@ -346,9 +373,12 @@ Retrieve a paginated list of ingredients with optional filtering.
       "id": "uuid",
       "name_vi": "Cà chua",
       "name_en": "Tomato",
-      "category": "vegetable",
-      "default_unit": "kg",
+      "category": "vegetables", // legacy field
+      "category_id": "uuid", // new foreign key
+      "default_unit": "kg", // legacy field
+      "unit_id": "uuid", // new foreign key
       "current_price": 25000,
+      "density": 1.0, // g/ml for mass-volume conversion
       "seasonal_flag": false,
       "created_at": "2024-01-01T00:00:00Z",
       "updated_at": "2024-01-01T00:00:00Z"
@@ -382,9 +412,12 @@ Create a new ingredient with automatic duplicate detection.
   "ingredient": {
     "name_vi": "Cà chua", // Required
     "name_en": "Tomato", // Optional
-    "category": "vegetable", // Required
-    "default_unit": "kg", // Required
+    "category": "vegetables", // Optional (legacy - use category_id instead)
+    "category_id": "uuid", // Recommended - foreign key to category
+    "default_unit": "kg", // Optional (legacy - use unit_id instead)
+    "unit_id": "uuid", // Required - foreign key to unit
     "current_price": 25000, // Required, must be positive
+    "density": 1.0, // Optional - g/ml for mass-volume conversion
     "seasonal_flag": false // Optional, defaults to false
   }
 }
@@ -498,9 +531,12 @@ Create up to 50 ingredients in a single request.
     {
       "name_vi": "Cà chua",
       "name_en": "Tomato",
-      "category": "vegetable",
-      "default_unit": "kg",
+      "category": "vegetables", // Optional (legacy - use category_id instead)
+      "category_id": "uuid", // Recommended - foreign key to category
+      "default_unit": "kg", // Optional (legacy - use unit_id instead)
+      "unit_id": "uuid", // Required - foreign key to unit
       "current_price": 25000,
+      "density": 1.0, // Optional - g/ml for mass-volume conversion
       "seasonal_flag": false
     }
   ]
