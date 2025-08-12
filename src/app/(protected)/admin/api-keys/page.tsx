@@ -65,222 +65,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { getEndpoints, type Endpoint, type Parameter } from "./api-endpoints";
 
 interface ApiKeyFormData {
   name: string;
   permissions: ("read" | "write" | "admin")[];
   expires_at?: Date;
 }
-
-interface ApiEndpoint {
-  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-  path: string;
-  description: string;
-  rateLimit?: string;
-}
-
-const endpoints: ApiEndpoint[] = [
-  {
-    method: "GET",
-    path: "/api/v1/decks",
-    description: "List your decks",
-  },
-  {
-    method: "POST",
-    path: "/api/v1/decks",
-    description: "Create a new deck",
-  },
-  {
-    method: "POST",
-    path: "/api/v1/decks/{deckId}/cards/batch",
-    description: "Add multiple cards",
-    rateLimit: "batch",
-  },
-  {
-    method: "GET",
-    path: "/api/v1/study/queue",
-    description: "Get cards due for review",
-  },
-  {
-    method: "GET",
-    path: "/api/v1/ingredients",
-    description: "List ingredients",
-  },
-  {
-    method: "POST",
-    path: "/api/v1/ingredients",
-    description: "Create ingredient",
-  },
-  {
-    method: "POST",
-    path: "/api/v1/ingredients/batch",
-    description: "Batch create ingredients",
-    rateLimit: "batch",
-  },
-  {
-    method: "GET",
-    path: "/api/v1/dishes",
-    description: "List dishes",
-  },
-  {
-    method: "POST",
-    path: "/api/v1/dishes",
-    description: "Create dish",
-  },
-  {
-    method: "POST",
-    path: "/api/v1/dishes/batch",
-    description: "Batch create dishes",
-    rateLimit: "batch",
-  },
-  {
-    method: "GET",
-    path: "/api/v1/tags",
-    description: "List tags",
-  },
-  {
-    method: "GET",
-    path: "/api/v1/menus",
-    description: "List menus",
-  },
-  {
-    method: "GET",
-    path: "/api/v1/units",
-    description: "List all units with categories",
-  },
-  {
-    method: "GET",
-    path: "/api/v1/units/categories",
-    description: "List unit categories",
-  },
-  {
-    method: "GET",
-    path: "/api/v1/units/conversions",
-    description: "Get unit conversion factors",
-  },
-];
-
-const getEndpointExamples = (method: string, path: string) => {
-  const baseUrl =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const fullUrl = `${baseUrl}${path}`;
-
-  if (method === "GET") {
-    const isUnits = path.includes("units");
-    const queryParams =
-      isUnits && path === "/api/v1/units" ? "?include_category=true" : "";
-
-    return {
-      curl: `curl -X GET "${fullUrl}${queryParams}" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json"`,
-
-      python: `import requests
-
-headers = {
-    'Authorization': 'Bearer YOUR_API_KEY',
-    'Content-Type': 'application/json'
-}
-
-response = requests.get('${fullUrl}${queryParams}', headers=headers)
-print(response.json())`,
-
-      javascript: `const response = await fetch('${fullUrl}${queryParams}', {
-  headers: {
-    'Authorization': 'Bearer YOUR_API_KEY',
-    'Content-Type': 'application/json'
-  }
-});
-
-const data = await response.json();
-console.log(data);`,
-    };
-  } else if (method === "POST") {
-    const isIngredient = path.includes("ingredients");
-    const isDish = path.includes("dishes");
-    const isDeck = path.includes("decks");
-    const isBatch = path.includes("batch");
-
-    let sampleData = "{}";
-    if (isIngredient && !isBatch) {
-      sampleData = `{
-  "ingredient": {
-    "name_vi": "Thịt bò",
-    "name_en": "Beef",
-    "category": "meat",
-    "default_unit": "kg",
-    "current_price": 280000
-  }
-}`;
-    } else if (isIngredient && isBatch) {
-      sampleData = `{
-  "ingredients": [
-    {
-      "name_vi": "Hành tím",
-      "name_en": "Shallot",
-      "category": "vegetables",
-      "default_unit": "kg",
-      "current_price": 40000
-    }
-  ]
-}`;
-    } else if (isDish && !isBatch) {
-      sampleData = `{
-  "dish": {
-    "name_vi": "Phở Bò",
-    "name_en": "Beef Pho",
-    "description_vi": "Món phở truyền thống",
-    "difficulty": "medium",
-    "cook_time": 180
-  },
-  "ingredients": [],
-  "tags": []
-}`;
-    } else if (isDeck) {
-      sampleData = `{
-  "deck": {
-    "name": "Vietnamese Vocabulary",
-    "description": "Essential Vietnamese words"
-  }
-}`;
-    }
-
-    return {
-      curl: `curl -X POST "${fullUrl}" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '${sampleData.replace(/\n/g, "\\n").replace(/  /g, "  ")}'`,
-
-      python: `import requests
-
-headers = {
-    'Authorization': 'Bearer YOUR_API_KEY',
-    'Content-Type': 'application/json'
-}
-
-data = ${sampleData}
-
-response = requests.post('${fullUrl}', headers=headers, json=data)
-print(response.json())`,
-
-      javascript: `const response = await fetch('${fullUrl}', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer YOUR_API_KEY',
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(${sampleData})
-});
-
-const data = await response.json();
-console.log(data);`,
-    };
-  }
-
-  return { curl: "", python: "", javascript: "" };
-};
 
 const getExampleCode = () => {
   const baseUrl =
@@ -371,61 +162,6 @@ function MethodBadge({ method }: { method: string }) {
   );
 }
 
-function EndpointItem({ endpoint }: { endpoint: ApiEndpoint }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const examples = getEndpointExamples(endpoint.method, endpoint.path);
-
-  return (
-    <div className="overflow-hidden rounded-lg border">
-      <div
-        className="hover:bg-accent/50 flex cursor-pointer items-center justify-between p-3 transition-colors"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex items-center gap-3">
-          <MethodBadge method={endpoint.method} />
-          <code className="font-mono text-sm">{endpoint.path}</code>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-muted-foreground text-sm">
-            {endpoint.description}
-          </span>
-          {endpoint.rateLimit === "batch" && (
-            <Badge variant="secondary" className="text-xs">
-              Batch limit
-            </Badge>
-          )}
-          {isExpanded ? (
-            <ChevronDown className="text-muted-foreground h-4 w-4" />
-          ) : (
-            <ChevronRight className="text-muted-foreground h-4 w-4" />
-          )}
-        </div>
-      </div>
-
-      {isExpanded && (
-        <div className="bg-muted/20 border-t p-4">
-          <Tabs defaultValue="curl" className="w-full">
-            <TabsList className="mb-4 grid w-full grid-cols-3">
-              <TabsTrigger value="curl">cURL</TabsTrigger>
-              <TabsTrigger value="python">Python</TabsTrigger>
-              <TabsTrigger value="javascript">JavaScript</TabsTrigger>
-            </TabsList>
-            <TabsContent value="curl">
-              <CodeBlock code={examples.curl} language="bash" />
-            </TabsContent>
-            <TabsContent value="python">
-              <CodeBlock code={examples.python} language="python" />
-            </TabsContent>
-            <TabsContent value="javascript">
-              <CodeBlock code={examples.javascript} language="javascript" />
-            </TabsContent>
-          </Tabs>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function ApiKeysPage() {
   const router = useRouter();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -440,6 +176,14 @@ export default function ApiKeysPage() {
   });
 
   const exampleCode = getExampleCode();
+  const [expandedEndpoints, setExpandedEndpoints] = useState<string[]>([]);
+
+  const origin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+  const endpoints = getEndpoints(origin);
 
   const { data: apiKeys, refetch } = api.apiKey.list.useQuery();
   const createMutation = api.apiKey.create.useMutation();
@@ -488,6 +232,14 @@ export default function ApiKeysPage() {
         ? prev.permissions.filter((p) => p !== permission)
         : [...prev.permissions, permission],
     }));
+  };
+
+  const toggleEndpoint = (endpointId: string) => {
+    setExpandedEndpoints((prev) =>
+      prev.includes(endpointId)
+        ? prev.filter((id) => id !== endpointId)
+        : [...prev, endpointId],
+    );
   };
 
   return (
@@ -728,10 +480,145 @@ export default function ApiKeysPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {endpoints.map((endpoint, index) => (
-                  <EndpointItem key={index} endpoint={endpoint} />
-                ))}
+              <div className="space-y-4">
+                {endpoints.map((endpoint) => {
+                  const isExpanded = expandedEndpoints.includes(endpoint.id);
+                  return (
+                    <div key={endpoint.id} className="rounded-lg border">
+                      <div
+                        className="flex cursor-pointer items-center justify-between p-4 hover:bg-gray-50"
+                        onClick={() => toggleEndpoint(endpoint.id)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <span
+                            className={cn(
+                              "rounded-md px-3 py-1 text-sm font-medium",
+                              endpoint.method === "GET" &&
+                                "bg-blue-100 text-blue-700",
+                              endpoint.method === "POST" &&
+                                "bg-green-100 text-green-700",
+                              endpoint.method === "PUT" &&
+                                "bg-yellow-100 text-yellow-700",
+                              endpoint.method === "DELETE" &&
+                                "bg-red-100 text-red-700",
+                            )}
+                          >
+                            {endpoint.method}
+                          </span>
+                          <code className="font-mono text-sm">
+                            {endpoint.path}
+                          </code>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">
+                            {endpoint.description}
+                          </span>
+                          {isExpanded ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div className="border-t bg-gray-50">
+                          {/* Parameters Section */}
+                          {endpoint.parameters && (
+                            <div className="border-b p-4">
+                              <h5 className="mb-2 font-semibold">Parameters</h5>
+                              <div className="space-y-2">
+                                {endpoint.parameters.map((param) => (
+                                  <div key={param.name} className="text-sm">
+                                    <code className="rounded bg-gray-100 px-2 py-1 font-mono">
+                                      {param.name}
+                                    </code>
+                                    <span className="ml-2 text-gray-600">
+                                      ({param.type})
+                                      {param.required && (
+                                        <span className="ml-1 text-red-500">
+                                          *
+                                        </span>
+                                      )}
+                                    </span>
+                                    {param.description && (
+                                      <span className="ml-2">
+                                        - {param.description}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Request Body Section */}
+                          {endpoint.requestBody && (
+                            <div className="border-b p-4">
+                              <h5 className="mb-2 font-semibold">
+                                Request Body
+                              </h5>
+                              <pre className="overflow-x-auto rounded-lg bg-gray-900 p-3 text-sm text-gray-100">
+                                <code>
+                                  {JSON.stringify(
+                                    endpoint.requestBody,
+                                    null,
+                                    2,
+                                  )}
+                                </code>
+                              </pre>
+                            </div>
+                          )}
+
+                          {/* Response Section */}
+                          {endpoint.response && (
+                            <div className="border-b p-4">
+                              <h5 className="mb-2 font-semibold">Response</h5>
+                              <pre className="overflow-x-auto rounded-lg bg-gray-900 p-3 text-sm text-gray-100">
+                                <code>
+                                  {JSON.stringify(endpoint.response, null, 2)}
+                                </code>
+                              </pre>
+                            </div>
+                          )}
+
+                          {/* Code Examples */}
+                          <div className="p-4">
+                            <h5 className="mb-2 font-semibold">
+                              Code Examples
+                            </h5>
+                            <Tabs defaultValue="curl" className="w-full">
+                              <TabsList className="grid w-full grid-cols-3">
+                                <TabsTrigger value="curl">cURL</TabsTrigger>
+                                <TabsTrigger value="python">Python</TabsTrigger>
+                                <TabsTrigger value="javascript">
+                                  JavaScript
+                                </TabsTrigger>
+                              </TabsList>
+                              <TabsContent value="curl" className="mt-4">
+                                <CodeBlock
+                                  code={endpoint.examples.curl}
+                                  language="bash"
+                                />
+                              </TabsContent>
+                              <TabsContent value="python" className="mt-4">
+                                <CodeBlock
+                                  code={endpoint.examples.python}
+                                  language="python"
+                                />
+                              </TabsContent>
+                              <TabsContent value="javascript" className="mt-4">
+                                <CodeBlock
+                                  code={endpoint.examples.javascript}
+                                  language="javascript"
+                                />
+                              </TabsContent>
+                            </Tabs>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
