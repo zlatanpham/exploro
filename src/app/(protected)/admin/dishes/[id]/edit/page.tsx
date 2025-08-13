@@ -21,14 +21,6 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 interface DishIngredient {
   ingredient_id: string;
@@ -37,6 +29,211 @@ interface DishIngredient {
   unit_id?: string; // New unit reference
   notes?: string;
   optional?: boolean;
+}
+
+interface Unit {
+  id: string;
+  symbol: string;
+  name_vi: string;
+  name_en: string;
+  category_id: string;
+}
+
+interface UnitCategory {
+  id: string;
+  name: string;
+  units: Unit[];
+}
+
+interface Ingredient {
+  id: string;
+  name_vi: string;
+  name_en: string | null;
+  unit: Unit | null;
+}
+
+interface IngredientRowProps {
+  ingredient: DishIngredient;
+  index: number;
+  allIngredients: Ingredient[];
+  unitCategories: UnitCategory[];
+  language: string;
+  t: (key: string) => string;
+  onUpdate: (index: number, field: keyof DishIngredient, value: any) => void;
+  onRemove: () => void;
+}
+
+function IngredientRow({
+  ingredient,
+  index,
+  allIngredients,
+  unitCategories,
+  language,
+  t,
+  onUpdate,
+  onRemove,
+}: IngredientRowProps) {
+  // Get the selected ingredient details
+  const selectedIngredient = allIngredients.find(
+    (ing) => ing.id === ingredient.ingredient_id,
+  );
+
+  // Simplified unit selection - show all units when ingredient is selected
+  const availableUnits: Unit[] = ingredient.ingredient_id
+    ? unitCategories.flatMap((cat) => cat.units)
+    : [];
+
+  // Handle ingredient selection change
+  const handleIngredientChange = (ingredientId: string) => {
+    // Update ingredient ID first, then reset unit fields in a single update
+    onUpdate(index, "ingredient_id", ingredientId);
+
+    // Use setTimeout to ensure the ingredient_id update is processed first
+    setTimeout(() => {
+      onUpdate(index, "unit_id", "");
+      onUpdate(index, "unit", "");
+    }, 0);
+  };
+
+  // Handle unit selection change
+  const handleUnitChange = (unitId: string) => {
+    onUpdate(index, "unit_id", unitId);
+
+    // Update legacy unit field with symbol
+    const selectedUnit = availableUnits.find((u: Unit) => u.id === unitId);
+    if (selectedUnit) {
+      onUpdate(index, "unit", selectedUnit.symbol);
+    }
+  };
+
+  return (
+    <div className="space-y-4 rounded-lg border p-4">
+      <div className="flex items-center justify-between">
+        <h4 className="font-medium">
+          {t("ingredient.name")} #{index + 1}
+        </h4>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          className="text-destructive hover:text-destructive"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* Ingredient Selection */}
+        <div className="space-y-2">
+          <Label>{t("ingredient.name")} *</Label>
+          <Select
+            value={ingredient.ingredient_id || undefined}
+            onValueChange={handleIngredientChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={t("action.select")} />
+            </SelectTrigger>
+            <SelectContent>
+              {allIngredients.map((ing) => (
+                <SelectItem key={ing.id} value={ing.id}>
+                  {language === "vi" ? ing.name_vi : ing.name_en || ing.name_vi}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Unit Selection */}
+        <div className="space-y-2">
+          <Label>{t("ingredient.unit")} *</Label>
+          <Select
+            key={`unit-${ingredient.ingredient_id || "empty"}`}
+            value={ingredient.unit_id || undefined}
+            onValueChange={handleUnitChange}
+            disabled={!ingredient.ingredient_id}
+          >
+            <SelectTrigger>
+              <SelectValue
+                placeholder={
+                  !ingredient.ingredient_id
+                    ? "Select ingredient first"
+                    : availableUnits.length === 0
+                      ? "No units available"
+                      : t("action.select")
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {availableUnits.length > 0 ? (
+                availableUnits.map((unit: Unit) => (
+                  <SelectItem key={unit.id} value={unit.id}>
+                    <span className="font-mono font-medium">{unit.symbol}</span>
+                    <span className="text-muted-foreground ml-2">
+                      {language === "vi" ? unit.name_vi : unit.name_en}
+                    </span>
+                    {selectedIngredient?.unit?.id === unit.id && (
+                      <span className="text-primary ml-2 text-xs">
+                        (default)
+                      </span>
+                    )}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-units" disabled>
+                  Loading units...
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {/* Quantity */}
+        <div className="space-y-2">
+          <Label>{t("ingredient.quantity")} *</Label>
+          <Input
+            type="number"
+            value={ingredient.quantity}
+            onChange={(e) =>
+              onUpdate(index, "quantity", parseFloat(e.target.value) || 0)
+            }
+            min={0}
+            step="any"
+            placeholder="0"
+          />
+        </div>
+
+        {/* Notes */}
+        <div className="space-y-2">
+          <Label>Notes</Label>
+          <Input
+            value={ingredient.notes ?? ""}
+            onChange={(e) => onUpdate(index, "notes", e.target.value)}
+            placeholder="Optional notes"
+          />
+        </div>
+
+        {/* Optional checkbox */}
+        <div className="space-y-2">
+          <Label>Options</Label>
+          <div className="flex items-center space-x-2 pt-2">
+            <Checkbox
+              id={`optional-${index}`}
+              checked={ingredient.optional ?? false}
+              onCheckedChange={(checked) =>
+                onUpdate(index, "optional", checked)
+              }
+            />
+            <Label htmlFor={`optional-${index}`} className="text-sm">
+              Optional ingredient
+            </Label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function EditDishPage({
@@ -108,8 +305,8 @@ export default function EditDishPage({
       setInstructionsVi(dish.instructions_vi);
       setInstructionsEn(dish.instructions_en ?? "");
       setDifficulty(dish.difficulty as "easy" | "medium" | "hard");
-      console.log('Setting difficulty to:', dish.difficulty);
-      console.log('Translation for easy:', t('dish.difficulty.easy'));
+      console.log("Setting difficulty to:", dish.difficulty);
+      console.log("Translation for easy:", t("dish.difficulty.easy"));
       setCookTime(dish.cook_time);
       setPrepTime(dish.prep_time ?? 15);
       setServings(dish.servings);
@@ -142,7 +339,7 @@ export default function EditDishPage({
     if (status === "authenticated" && session?.user?.role !== "admin") {
       router.push("/");
     }
-  }, [session, status, router]);
+  }, [session, status, router, t]);
 
   // Show loading state while checking authentication
   if (status === "loading" || dishLoading) {
@@ -174,7 +371,7 @@ export default function EditDishPage({
         source_url: source_url || undefined,
         status: dishStatus,
       },
-      ingredients: ingredients.map(ing => ({
+      ingredients: ingredients.map((ing) => ({
         ...ing,
         unit: ing.unit || undefined, // Convert empty strings to undefined
       })),
@@ -204,9 +401,11 @@ export default function EditDishPage({
     field: keyof DishIngredient,
     value: any,
   ) => {
-    const updated = [...ingredients];
-    updated[index] = { ...updated[index], [field]: value } as DishIngredient;
-    setIngredients(updated);
+    setIngredients((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value } as DishIngredient;
+      return updated;
+    });
   };
 
   return (
@@ -280,7 +479,9 @@ export default function EditDishPage({
                 <Label htmlFor="difficulty">{t("dish.difficulty")} *</Label>
                 <Select
                   value={difficulty}
-                  onValueChange={(v) => setDifficulty(v as "easy" | "medium" | "hard")}
+                  onValueChange={(v) =>
+                    setDifficulty(v as "easy" | "medium" | "hard")
+                  }
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue />
@@ -414,150 +615,20 @@ export default function EditDishPage({
           <CardHeader>
             <CardTitle>{t("dish.ingredients")}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("ingredient.name")}</TableHead>
-                  <TableHead>{t("ingredient.quantity")}</TableHead>
-                  <TableHead>{t("ingredient.unit")}</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead>Optional</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ingredients.map((ingredient, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <Select
-                        value={ingredient.ingredient_id || undefined}
-                        onValueChange={(v) => {
-                          updateIngredient(index, "ingredient_id", v);
-                          // Auto-select default unit when ingredient is selected
-                          const selectedIng = allIngredients?.find(
-                            (ing) => ing.id === v,
-                          );
-                          if (selectedIng?.unit) {
-                            updateIngredient(
-                              index,
-                              "unit_id",
-                              selectedIng.unit.id,
-                            );
-                            updateIngredient(
-                              index,
-                              "unit",
-                              selectedIng.unit.symbol,
-                            );
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("action.select")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {allIngredients?.map((ing) => (
-                            <SelectItem key={ing.id} value={ing.id}>
-                              {language === "vi"
-                                ? ing.name_vi
-                                : (ing.name_en ?? ing.name_vi)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={ingredient.quantity}
-                        onChange={(e) =>
-                          updateIngredient(
-                            index,
-                            "quantity",
-                            parseFloat(e.target.value),
-                          )
-                        }
-                        min={0}
-                        step="any"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {(() => {
-                        const selectedIngredient = allIngredients?.find(
-                          (ing) => ing.id === ingredient.ingredient_id,
-                        );
-                        const ingredientUnit = selectedIngredient?.unit;
-                        const compatibleUnits = ingredientUnit
-                          ? unitCategories?.find(
-                              (cat: any) =>
-                                cat.id === ingredientUnit.category_id,
-                            )?.units || []
-                          : [];
-
-                        return (
-                          <Select
-                            value={ingredient.unit_id || undefined}
-                            onValueChange={(v) => {
-                              updateIngredient(index, "unit_id", v);
-                              // Also update legacy unit field with symbol
-                              const unit = compatibleUnits.find(
-                                (u: any) => u.id === v,
-                              );
-                              if (unit) {
-                                updateIngredient(index, "unit", unit.symbol);
-                              }
-                            }}
-                            disabled={!ingredient.ingredient_id}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder={t("action.select")} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {compatibleUnits.map((unit: any) => (
-                                <SelectItem key={unit.id} value={unit.id}>
-                                  {unit.symbol} -{" "}
-                                  {language === "vi"
-                                    ? unit.name_vi
-                                    : unit.name_en}
-                                  {ingredientUnit?.id === unit.id &&
-                                    " (default)"}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        );
-                      })()}
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={ingredient.notes ?? ""}
-                        onChange={(e) =>
-                          updateIngredient(index, "notes", e.target.value)
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Checkbox
-                        checked={ingredient.optional}
-                        onCheckedChange={(checked) =>
-                          updateIngredient(index, "optional", checked)
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeIngredient(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardContent className="space-y-4">
+            {ingredients.map((ingredient, index) => (
+              <IngredientRow
+                key={`ingredient-${index}-${ingredient.ingredient_id || "new"}-${ingredient.unit_id || "no-unit"}`}
+                ingredient={ingredient}
+                index={index}
+                allIngredients={allIngredients || []}
+                unitCategories={unitCategories || []}
+                language={language}
+                t={t}
+                onUpdate={updateIngredient}
+                onRemove={() => removeIngredient(index)}
+              />
+            ))}
             <Button
               type="button"
               variant="outline"
