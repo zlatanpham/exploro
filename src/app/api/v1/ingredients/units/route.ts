@@ -216,7 +216,7 @@ export const GET = withApiAuth(
           if (!acc[unit.category]) {
             acc[unit.category] = [];
           }
-          acc[unit.category].push(unit);
+          acc[unit.category]!.push(unit);
           return acc;
         },
         {} as Record<string, typeof ingredientUnits>,

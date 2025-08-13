@@ -21,8 +21,7 @@ const dishInput = z.object({
 const dishIngredientInput = z.object({
   ingredient_id: z.string(),
   quantity: z.number().positive(),
-  unit: z.string().min(1).max(50).optional(), // Legacy field
-  unit_id: z.string().optional(), // New unit reference
+  unit_id: z.string().min(1, "Unit ID is required").optional(), // Unit reference (preferring unit_id over legacy unit field)
   notes: z.string().optional(),
   optional: z.boolean().optional(),
 });

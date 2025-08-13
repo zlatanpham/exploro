@@ -134,6 +134,7 @@ export const menuRouter = createTRPCRouter({
                   DishIngredient: {
                     include: {
                       ingredient: true,
+                      unit_ref: true,
                     },
                   },
                   DishTag: {
@@ -187,7 +188,7 @@ export const menuRouter = createTRPCRouter({
             ingredientMap.set(key, {
               ingredient: dishIngredient.ingredient,
               totalQuantity: dishIngredient.quantity.toNumber() * dishQuantity,
-              unit: dishIngredient.unit,
+              unit: dishIngredient.unit || dishIngredient.unit_ref?.symbol || "",
               dishes: [menuDish.dish.name_vi],
             });
           }

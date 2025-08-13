@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Mapping of old string units to new unit symbols
+// Mapping of old string units to new unit symbols (based on actual database units)
 const UNIT_MAPPING: Record<string, string> = {
   // Mass units
   'kg': 'kg',
@@ -10,6 +10,8 @@ const UNIT_MAPPING: Record<string, string> = {
   'gram': 'g',
   'kilogram': 'kg',
   'kilogam': 'kg', // typo variations
+  'mg': 'mg',
+  'tấn': 'tấn',
   
   // Volume units
   'l': 'l',
@@ -18,20 +20,32 @@ const UNIT_MAPPING: Record<string, string> = {
   'ml': 'ml',
   'mililít': 'ml',
   'mililit': 'ml',
+  
+  // Vietnamese cooking units (match actual database symbols)
+  'muỗng canh': 'thìa',
+  'muỗng cà phê': 'thìa nhỏ', 
   'thìa': 'thìa',
   'thìa canh': 'thìa',
   'thìa cà phê': 'thìa nhỏ',
   'thìa nhỏ': 'thìa nhỏ',
   'chén': 'chén',
   'chen': 'chén',
+  'bát': 'bát',
   
-  // Count units
+  // Count units (based on actual database symbols)
   'cái': 'cái',
   'cai': 'cái',
+  'chiếc': 'cái', // map to generic piece
+  'con': 'cái', // animals can be counted as pieces
   'quả': 'quả',
   'qua': 'quả',
+  
+  // Bundle/pack units
   'bó': 'bó',
   'bo': 'bó',
+  'bụi': 'bó', // map to bunch
+  'nải': 'bó', // map to bunch
+  'chùm': 'bó', // map to bunch
   'nắm': 'nắm',
   'nam': 'nắm',
   'gói': 'gói',

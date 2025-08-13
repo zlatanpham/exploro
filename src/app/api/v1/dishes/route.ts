@@ -75,6 +75,7 @@ export const GET = withApiAuth(
               DishIngredient: {
                 include: {
                   ingredient: true,
+                  unit_ref: true,
                 },
               },
             }
@@ -122,7 +123,13 @@ export const GET = withApiAuth(
               name_vi: di.ingredient.name_vi,
               name_en: di.ingredient.name_en,
               quantity: di.quantity.toNumber(),
-              unit: di.unit,
+              unit_id: di.unit_id,
+              unit: di.unit_ref ? {
+                id: di.unit_ref.id,
+                symbol: di.unit_ref.symbol,
+                name_vi: di.unit_ref.name_vi,
+                name_en: di.unit_ref.name_en,
+              } : null,
               optional: di.optional,
               notes: di.notes,
             })),
@@ -162,7 +169,7 @@ const createDishSchema = z.object({
     z.object({
       ingredient_id: z.string(),
       quantity: z.number().positive(),
-      unit: z.string().min(1).max(50),
+      unit_id: z.string().min(1, "Unit ID is required").optional(),
       optional: z.boolean().default(false),
       notes: z.string().optional(),
     }),
@@ -232,6 +239,7 @@ export const POST = withApiAuth(
         DishIngredient: {
           include: {
             ingredient: true,
+            unit_ref: true,
           },
         },
         DishTag: {
@@ -273,7 +281,13 @@ export const POST = withApiAuth(
             name_vi: di.ingredient.name_vi,
             name_en: di.ingredient.name_en,
             quantity: di.quantity.toNumber(),
-            unit: di.unit,
+            unit_id: di.unit_id,
+            unit: di.unit_ref ? {
+              id: di.unit_ref.id,
+              symbol: di.unit_ref.symbol,
+              name_vi: di.unit_ref.name_vi,
+              name_en: di.unit_ref.name_en,
+            } : null,
             optional: di.optional,
             notes: di.notes,
           })),

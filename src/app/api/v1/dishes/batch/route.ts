@@ -28,7 +28,7 @@ const batchCreateDishesSchema = z.object({
           z.object({
             ingredient_id: z.string(),
             quantity: z.number().positive(),
-            unit: z.string().min(1).max(50),
+            unit_id: z.string().min(1, "Unit ID is required").optional(),
             optional: z.boolean().default(false),
             notes: z.string().optional(),
           }),
@@ -122,6 +122,7 @@ export const POST = withApiAuth(
             DishIngredient: {
               include: {
                 ingredient: true,
+                unit_ref: true,
               },
             },
             DishTag: {

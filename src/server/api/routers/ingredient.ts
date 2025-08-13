@@ -6,8 +6,7 @@ const ingredientInput = z.object({
   name_vi: z.string().min(1).max(255),
   name_en: z.string().max(255).optional(),
   category: z.string().min(1).max(100),
-  default_unit: z.string().min(1).max(50).optional(), // Legacy field
-  unit_id: z.string().optional(), // New unit reference
+  unit_id: z.string().min(1, "Unit ID is required").optional(), // Unit reference (preferring unit_id over legacy default_unit field)
   current_price: z.number().positive(),
   density: z.number().positive().optional(), // For mass-volume conversions
   seasonal_flag: z.boolean().optional(),
