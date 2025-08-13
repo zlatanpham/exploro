@@ -22,27 +22,38 @@ async function main() {
 
   console.log("Admin user created:", adminUser.email);
 
+  // Get unit IDs for mapping
+  const units = await prisma.unit.findMany();
+  const unitMap = new Map(units.map(u => [u.symbol, u.id]));
+
   // Create some ingredients
   const ingredients = [
-    { name_vi: "Thịt ba chỉ", name_en: "Pork belly", category: "meat", default_unit: "kg", current_price: 120000 },
-    { name_vi: "Gà ta", name_en: "Free-range chicken", category: "meat", default_unit: "kg", current_price: 150000 },
-    { name_vi: "Cá basa", name_en: "Basa fish", category: "seafood", default_unit: "kg", current_price: 80000 },
-    { name_vi: "Tôm sú", name_en: "Black tiger shrimp", category: "seafood", default_unit: "kg", current_price: 200000 },
-    { name_vi: "Rau muống", name_en: "Water spinach", category: "vegetables", default_unit: "bó", current_price: 5000 },
-    { name_vi: "Cải xanh", name_en: "Bok choy", category: "vegetables", default_unit: "kg", current_price: 15000 },
-    { name_vi: "Hành tím", name_en: "Shallot", category: "vegetables", default_unit: "kg", current_price: 30000 },
-    { name_vi: "Tỏi", name_en: "Garlic", category: "spices", default_unit: "kg", current_price: 40000 },
-    { name_vi: "Gừng", name_en: "Ginger", category: "spices", default_unit: "kg", current_price: 35000 },
-    { name_vi: "Nước mắm", name_en: "Fish sauce", category: "sauces", default_unit: "ml", current_price: 50 },
-    { name_vi: "Dầu ăn", name_en: "Cooking oil", category: "other", default_unit: "l", current_price: 40000 },
-    { name_vi: "Gạo tẻ", name_en: "White rice", category: "grains", default_unit: "kg", current_price: 25000 },
+    { name_vi: "Thịt ba chỉ", name_en: "Pork belly", category: "meat", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 120000 },
+    { name_vi: "Gà ta", name_en: "Free-range chicken", category: "meat", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 150000 },
+    { name_vi: "Cá basa", name_en: "Basa fish", category: "seafood", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 80000 },
+    { name_vi: "Tôm sú", name_en: "Black tiger shrimp", category: "seafood", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 200000 },
+    { name_vi: "Rau muống", name_en: "Water spinach", category: "vegetables", default_unit: "bó", unit_id: unitMap.get("bó")!, current_price: 5000 },
+    { name_vi: "Cải xanh", name_en: "Bok choy", category: "vegetables", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 15000 },
+    { name_vi: "Hành tím", name_en: "Shallot", category: "vegetables", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 30000 },
+    { name_vi: "Tỏi", name_en: "Garlic", category: "spices", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 40000 },
+    { name_vi: "Gừng", name_en: "Ginger", category: "spices", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 35000 },
+    { name_vi: "Nước mắm", name_en: "Fish sauce", category: "sauces", default_unit: "ml", unit_id: unitMap.get("ml")!, current_price: 50 },
+    { name_vi: "Dầu ăn", name_en: "Cooking oil", category: "other", default_unit: "l", unit_id: unitMap.get("l")!, current_price: 40000 },
+    { name_vi: "Gạo tẻ", name_en: "White rice", category: "grains", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 25000 },
   ];
 
   for (const ing of ingredients) {
     await prisma.ingredient.upsert({
       where: { name_vi: ing.name_vi },
       update: {},
-      create: ing,
+      create: {
+        name_vi: ing.name_vi,
+        name_en: ing.name_en,
+        category: ing.category,
+        default_unit: ing.default_unit,
+        unit_id: ing.unit_id,
+        current_price: ing.current_price,
+      },
     });
   }
 
@@ -127,6 +138,7 @@ async function main() {
           ingredient_id: ingredient!.id,
           quantity: ing.quantity,
           unit: ing.unit,
+          unit_id: unitMap.get(ing.unit)!,
         };
       })
     );

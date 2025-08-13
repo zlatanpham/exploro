@@ -1,258 +1,76 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withApiAuth } from "@/lib/api/middleware";
-
-// Define common ingredient units with categories
-const ingredientUnits = [
-  // Mass units
-  {
-    id: "kg",
-    value: "kg",
-    name_vi: "Kilogram",
-    name_en: "Kilogram",
-    symbol: "kg",
-    category: "mass",
-    base_unit: true,
-    factor_to_base: 1,
-  },
-  {
-    id: "g",
-    value: "g",
-    name_vi: "Gram",
-    name_en: "Gram",
-    symbol: "g",
-    category: "mass",
-    base_unit: false,
-    factor_to_base: 0.001,
-  },
-  {
-    id: "mg",
-    value: "mg",
-    name_vi: "Miligram",
-    name_en: "Milligram",
-    symbol: "mg",
-    category: "mass",
-    base_unit: false,
-    factor_to_base: 0.000001,
-  },
-  {
-    id: "tan",
-    value: "tấn",
-    name_vi: "Tấn",
-    name_en: "Ton",
-    symbol: "tấn",
-    category: "mass",
-    base_unit: false,
-    factor_to_base: 1000,
-  },
-
-  // Volume units
-  {
-    id: "l",
-    value: "l",
-    name_vi: "Lít",
-    name_en: "Liter",
-    symbol: "l",
-    category: "volume",
-    base_unit: true,
-    factor_to_base: 1,
-  },
-  {
-    id: "ml",
-    value: "ml",
-    name_vi: "Mililít",
-    name_en: "Milliliter",
-    symbol: "ml",
-    category: "volume",
-    base_unit: false,
-    factor_to_base: 0.001,
-  },
-  {
-    id: "cl",
-    value: "cl",
-    name_vi: "Centilít",
-    name_en: "Centiliter",
-    symbol: "cl",
-    category: "volume",
-    base_unit: false,
-    factor_to_base: 0.01,
-  },
-  {
-    id: "dl",
-    value: "dl",
-    name_vi: "Decilít",
-    name_en: "Deciliter",
-    symbol: "dl",
-    category: "volume",
-    base_unit: false,
-    factor_to_base: 0.1,
-  },
-
-  // Count units
-  {
-    id: "cai",
-    value: "cái",
-    name_vi: "Cái",
-    name_en: "Piece",
-    symbol: "cái",
-    category: "count",
-    base_unit: true,
-    factor_to_base: 1,
-  },
-  {
-    id: "chiec",
-    value: "chiếc",
-    name_vi: "Chiếc",
-    name_en: "Item",
-    symbol: "chiếc",
-    category: "count",
-    base_unit: false,
-    factor_to_base: 1,
-  },
-  {
-    id: "con",
-    value: "con",
-    name_vi: "Con",
-    name_en: "Animal/Fish (count)",
-    symbol: "con",
-    category: "count",
-    base_unit: false,
-    factor_to_base: 1,
-  },
-  {
-    id: "qua",
-    value: "quả",
-    name_vi: "Quả",
-    name_en: "Fruit/Egg (count)",
-    symbol: "quả",
-    category: "count",
-    base_unit: false,
-    factor_to_base: 1,
-  },
-
-  // Bundle units
-  {
-    id: "bo",
-    value: "bó",
-    name_vi: "Bó",
-    name_en: "Bunch",
-    symbol: "bó",
-    category: "bundle",
-    base_unit: true,
-    factor_to_base: 1,
-  },
-  {
-    id: "bui",
-    value: "bụi",
-    name_vi: "Bụi",
-    name_en: "Bush/Clump",
-    symbol: "bụi",
-    category: "bundle",
-    base_unit: false,
-    factor_to_base: 1,
-  },
-  {
-    id: "nai",
-    value: "nải",
-    name_vi: "Nải",
-    name_en: "Hand (of bananas)",
-    symbol: "nải",
-    category: "bundle",
-    base_unit: false,
-    factor_to_base: 1,
-  },
-  {
-    id: "chum",
-    value: "chùm",
-    name_vi: "Chùm",
-    name_en: "Cluster",
-    symbol: "chùm",
-    category: "bundle",
-    base_unit: false,
-    factor_to_base: 1,
-  },
-
-  // Vietnamese cooking units
-  {
-    id: "muong_canh",
-    value: "muỗng canh",
-    name_vi: "Muỗng canh",
-    name_en: "Tablespoon",
-    symbol: "muỗng canh",
-    category: "cooking",
-    base_unit: false,
-    factor_to_base: 0.015, // ~15ml
-  },
-  {
-    id: "muong_ca_phe",
-    value: "muỗng cà phê",
-    name_vi: "Muỗng cà phê",
-    name_en: "Teaspoon",
-    symbol: "muỗng cà phê",
-    category: "cooking",
-    base_unit: false,
-    factor_to_base: 0.005, // ~5ml
-  },
-  {
-    id: "chen",
-    value: "chén",
-    name_vi: "Chén",
-    name_en: "Bowl",
-    symbol: "chén",
-    category: "cooking",
-    base_unit: false,
-    factor_to_base: 0.2, // ~200ml
-  },
-  {
-    id: "bat",
-    value: "bát",
-    name_vi: "Bát",
-    name_en: "Large bowl",
-    symbol: "bát",
-    category: "cooking",
-    base_unit: false,
-    factor_to_base: 0.3, // ~300ml
-  },
-];
+import { db } from "@/server/db";
 
 // GET /api/v1/ingredients/units - List all ingredient units
 export const GET = withApiAuth(
-  async (request, context) => {
-    const searchParams = new URL(request.url).searchParams;
-    const category = searchParams.get("category");
+  async (request, _context) => {
+    try {
+      const searchParams = new URL(request.url).searchParams;
+      const category = searchParams.get("category");
 
-    let units = ingredientUnits;
+      // Build query with category filter if provided
+      const whereClause = category 
+        ? { category: { name: category } }
+        : {};
 
-    // Filter by category if provided
-    if (category) {
-      units = units.filter((unit) => unit.category === category);
-    }
-
-    // Group by category if requested
-    const grouped = searchParams.get("grouped") === "true";
-
-    if (grouped) {
-      const groupedUnits = units.reduce(
-        (acc, unit) => {
-          if (!acc[unit.category]) {
-            acc[unit.category] = [];
-          }
-          acc[unit.category]!.push(unit);
-          return acc;
+      // Fetch units from database with category information
+      const dbUnits = await db.unit.findMany({
+        where: whereClause,
+        include: {
+          category: true,
         },
-        {} as Record<string, typeof ingredientUnits>,
-      );
+        orderBy: [
+          { category: { name: 'asc' } },
+          { symbol: 'asc' }
+        ]
+      });
+
+      // Transform database units to match the expected API format
+      const units = dbUnits.map((unit) => ({
+        id: unit.id,
+        value: unit.symbol,
+        name_vi: unit.name_vi,
+        name_en: unit.name_en,
+        symbol: unit.symbol,
+        category: unit.category.name,
+        base_unit: unit.is_base_unit,
+        factor_to_base: Number(unit.factor_to_base),
+      }));
+
+      // Group by category if requested
+      const grouped = searchParams.get("grouped") === "true";
+
+      if (grouped) {
+        const groupedUnits = units.reduce(
+          (acc, unit) => {
+            if (!acc[unit.category]) {
+              acc[unit.category] = [];
+            }
+            acc[unit.category]!.push(unit);
+            return acc;
+          },
+          {} as Record<string, typeof units>,
+        );
+
+        return NextResponse.json({
+          units: groupedUnits,
+          total: units.length,
+          categories: Object.keys(groupedUnits),
+        });
+      }
 
       return NextResponse.json({
-        units: groupedUnits,
+        units,
         total: units.length,
-        categories: Object.keys(groupedUnits),
       });
+    } catch (error) {
+      console.error("Error fetching units:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch units" },
+        { status: 500 }
+      );
     }
-
-    return NextResponse.json({
-      units,
-      total: units.length,
-    });
   },
   { requiredPermission: "read" },
 );

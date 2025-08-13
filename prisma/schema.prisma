@@ -136,14 +136,14 @@ model Ingredient {
     category         String?             @db.VarChar(100) // legacy field, to be removed after migration
     category_id      String?             // foreign key to IngredientCategory table
     default_unit     String?             @db.VarChar(50) // legacy field, to be removed after migration
-    unit_id          String?             // foreign key to Unit table
+    unit_id          String              // foreign key to Unit table
     current_price    Decimal             @db.Decimal(10, 2) // in VND per unit
     density          Decimal?            @db.Decimal(10, 3) // g/ml for volume to mass conversion
     price_updated_at DateTime            @default(now())
     seasonal_flag    Boolean             @default(false)
     created_at       DateTime            @default(now())
     updated_at       DateTime            @updatedAt
-    unit             Unit?               @relation("IngredientUnit", fields: [unit_id], references: [id])
+    unit             Unit                @relation("IngredientUnit", fields: [unit_id], references: [id])
     ingredient_category IngredientCategory? @relation(fields: [category_id], references: [id])
     DishIngredient   DishIngredient[]
     PriceHistory     PriceHistory[]
@@ -160,14 +160,14 @@ model DishIngredient {
     ingredient_id     String
     quantity          Decimal    @db.Decimal(10, 3)
     unit              String?    @db.VarChar(50) // legacy field, to be removed after migration
-    unit_id           String?    // foreign key to Unit table
+    unit_id           String     // foreign key to Unit table
     converted_quantity Decimal?  @db.Decimal(10, 3) // quantity converted to ingredient's base unit
     conversion_factor Decimal?   @db.Decimal(20, 10) // factor used for conversion
     notes             String?    @db.Text
     optional          Boolean    @default(false)
     dish              Dish       @relation(fields: [dish_id], references: [id], onDelete: Cascade)
     ingredient        Ingredient @relation(fields: [ingredient_id], references: [id])
-    unit_ref          Unit?      @relation("DishIngredientUnit", fields: [unit_id], references: [id])
+    unit_ref          Unit       @relation("DishIngredientUnit", fields: [unit_id], references: [id])
 
     @@unique([dish_id, ingredient_id])
     @@index([dish_id])

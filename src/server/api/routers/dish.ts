@@ -230,7 +230,11 @@ export const dishRouter = createTRPCRouter({
           }
           
           return {
-            ...ing,
+            ingredient_id: ing.ingredient_id,
+            quantity: ing.quantity,
+            unit_id: ing.unit_id!,
+            notes: ing.notes,
+            optional: ing.optional,
             converted_quantity: convertedQuantity,
             conversion_factor: conversionFactor,
           };
@@ -336,7 +340,11 @@ export const dishRouter = createTRPCRouter({
             }
             
             return {
-              ...ing,
+              ingredient_id: ing.ingredient_id,
+              quantity: ing.quantity,
+              unit_id: ing.unit_id!,
+              notes: ing.notes,
+              optional: ing.optional,
               dish_id: input.id,
               converted_quantity: convertedQuantity,
               conversion_factor: conversionFactor,

@@ -414,8 +414,9 @@ export default function NewDishPage() {
                             updated[index] = {
                               ...updated[index],
                               ingredient_id: v,
-                              unit_id: selectedIng?.unit?.id || "",
+                              unit_id: selectedIng?.unit?.id || selectedIng?.unit_id || "",
                               unit: selectedIng?.unit?.symbol || "",
+                              quantity: updated[index]?.quantity || 1,
                             };
                             setIngredients(updated);
                           }}
@@ -500,6 +501,8 @@ export default function NewDishPage() {
                                   ...updated[index],
                                   unit_id: v,
                                   unit: unit?.symbol || "",
+                                  ingredient_id: updated[index]?.ingredient_id || "",
+                                  quantity: updated[index]?.quantity || 1,
                                 };
                                 setIngredients(updated);
                               }}

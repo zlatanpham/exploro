@@ -21,6 +21,8 @@ export interface Endpoint {
   };
 }
 
+// ⚠️ BREAKING CHANGE NOTICE: unit_id is now REQUIRED for all ingredient and dish ingredient operations
+// Please update your API calls to use unit_id (foreign key) instead of unit (string values)
 export const getEndpoints = (origin: string): Endpoint[] => [
   {
     id: "get-ingredient-categories",
@@ -358,8 +360,8 @@ const data = await response.json();`,
           name_en: "Tomato",
           category: "vegetables", // legacy field
           category_id: "uuid", // new foreign key
-          default_unit: "kg", // legacy field
-          unit_id: "uuid", // new foreign key
+          default_unit: "kg", // DEPRECATED - legacy field
+          unit_id: "uuid", // REQUIRED - foreign key to Unit table
           current_price: 25000,
           density: 1.0, // g/ml for mass-volume conversion
           seasonal_flag: false,
@@ -401,8 +403,8 @@ const data = await response.json();`,
         name_en: "Tomato", // Optional
         category: "vegetables", // Optional (legacy - use category_id instead)
         category_id: "uuid", // Recommended - foreign key to category
-        default_unit: "kg", // Optional (legacy - use unit_id instead)
-        unit_id: "uuid", // Required - foreign key to unit
+        default_unit: "kg", // DEPRECATED (legacy - use unit_id instead)
+        unit_id: "uuid", // REQUIRED - foreign key to unit
         current_price: 25000, // Required, must be positive
         density: 1.0, // Optional - g/ml for mass-volume conversion
         seasonal_flag: false, // Optional, defaults to false
@@ -832,7 +834,7 @@ const result = await response.json();`,
               name_vi: "Thịt bò",
               name_en: "Beef",
               quantity: 0.5,
-              unit: "kg",
+              unit_id: "uuid-unit-id",
               optional: false,
               notes: "Nạm hoặc gầu",
             },
@@ -891,7 +893,7 @@ const data = await response.json();`,
         {
           ingredient_id: "uuid", // Required
           quantity: 0.5, // Required, must be positive
-          unit: "kg", // Required
+          unit_id: "uuid", // REQUIRED - foreign key to Unit table
           optional: false, // Optional, defaults to false
           notes: "Nạm hoặc gầu", // Optional
         },
@@ -922,7 +924,7 @@ const data = await response.json();`,
             name_vi: "Thịt bò",
             name_en: "Beef",
             quantity: 0.5,
-            unit: "kg",
+            unit_id: "uuid-unit-id",
             optional: false,
             notes: "Nạm hoặc gầu",
           },
@@ -955,7 +957,7 @@ const data = await response.json();`,
       {
         "ingredient_id": "uuid-here",
         "quantity": 0.5,
-        "unit": "kg"
+        "unit_id": "uuid-unit-id"
       }
     ],
     "tags": []
@@ -975,7 +977,7 @@ data = {
         {
             "ingredient_id": "uuid-here",
             "quantity": 0.5,
-            "unit": "kg"
+            "unit_id": "uuid-unit-id"
         }
     ],
     "tags": []
@@ -1000,7 +1002,7 @@ result = response.json()`,
     {
       ingredient_id: "uuid-here",
       quantity: 0.5,
-      unit: "kg"
+      unit_id: "uuid-unit-id"
     }
   ],
   tags: []
@@ -1041,7 +1043,7 @@ const result = await response.json();`,
             {
               ingredient_id: "uuid",
               quantity: 0.5,
-              unit: "kg",
+              unit_id: "uuid-unit-id",
               optional: false,
               notes: "Nạm hoặc gầu",
             },
@@ -1089,7 +1091,7 @@ const result = await response.json();`,
           {
             "ingredient_id": "uuid-here",
             "quantity": 0.5,
-            "unit": "kg"
+            "unit_id": "uuid-unit-id"
           }
         ]
       }
@@ -1134,7 +1136,7 @@ result = response.json()`,
         {
           ingredient_id: "uuid-here",
           quantity: 0.5,
-          unit: "kg"
+          unit_id: "uuid-unit-id"
         }
       ]
     }

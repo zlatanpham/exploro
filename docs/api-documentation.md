@@ -1,5 +1,14 @@
 # Exploro API Documentation
 
+## ⚠️ Breaking Change Notice
+
+**IMPORTANT**: As of the latest version, `unit_id` is now REQUIRED for all ingredient and dish ingredient operations.
+
+- ✅ **NEW**: `unit_id: "uuid"` (required foreign key to Unit table)
+- ❌ **DEPRECATED**: `unit: "kg"` and `default_unit: "kg"` (string values, maintained for backward compatibility)
+
+This change ensures data consistency and enables advanced unit conversions. Please update your API calls to include valid `unit_id` values.
+
 ## Overview
 
 The Exploro API provides programmatic access to manage culinary data including ingredients, dishes, menus, and tags. This RESTful API uses standard HTTP methods and returns JSON responses.
@@ -390,7 +399,7 @@ Retrieve a paginated list of ingredients with optional filtering.
       "category": "vegetables", // legacy field (deprecated)
       "category_id": "uuid", // foreign key to IngredientCategory
       "default_unit": "kg", // legacy field (deprecated - use unit_id)
-      "unit_id": "uuid", // foreign key to Unit table
+      "unit_id": "uuid", // REQUIRED - foreign key to Unit table
       "current_price": 25000,
       "density": 1.0, // g/ml for mass-volume conversion
       "seasonal_flag": false,
@@ -428,7 +437,7 @@ Create a new ingredient with automatic duplicate detection.
     "name_en": "Tomato", // Optional
     "category": "vegetables", // Optional (legacy - use category_id instead)
     "category_id": "uuid", // Recommended - foreign key to category
-    "unit_id": "uuid", // Required - foreign key to unit (replaces legacy default_unit)
+    "unit_id": "uuid", // REQUIRED - foreign key to unit (replaces legacy default_unit)
     "current_price": 25000, // Required, must be positive
     "density": 1.0, // Optional - g/ml for mass-volume conversion
     "seasonal_flag": false // Optional, defaults to false
@@ -546,7 +555,7 @@ Create up to 50 ingredients in a single request.
       "name_en": "Tomato",
       "category": "vegetables", // Optional (legacy - use category_id instead)
       "category_id": "uuid", // Recommended - foreign key to category
-      "unit_id": "uuid", // Required - foreign key to unit
+      "unit_id": "uuid", // REQUIRED - foreign key to unit
       "current_price": 25000,
       "density": 1.0, // Optional - g/ml for mass-volume conversion
       "seasonal_flag": false
@@ -783,7 +792,7 @@ Create a new dish with ingredient associations and tags.
     {
       "ingredient_id": "uuid", // Required
       "quantity": 0.5, // Required, must be positive
-      "unit_id": "uuid", // Required - foreign key to Unit table
+      "unit_id": "uuid", // REQUIRED - foreign key to Unit table
       "optional": false, // Optional, defaults to false
       "notes": "Nạm hoặc gầu" // Optional
     }
@@ -1166,10 +1175,11 @@ The API includes a comprehensive unit system for ingredient measurements with su
 
 ### Migration Notice
 
-**Important**: The unit system has been migrated from string-based units to a relational foreign key system:
+**BREAKING CHANGE**: The unit system has been migrated from string-based units to a relational foreign key system:
 
-- **Legacy**: `unit: "kg"` and `default_unit: "kg"` (deprecated)
-- **Current**: `unit_id: "uuid"` with full unit object in responses
+- **Legacy**: `unit: "kg"` and `default_unit: "kg"` (deprecated, maintained for backward compatibility)
+- **Current**: `unit_id: "uuid"` (**REQUIRED** for all new operations) with full unit object in responses
+- **Breaking Change**: As of the latest version, `unit_id` is now mandatory for creating/updating ingredients and dish ingredients
 - **Benefits**: Automatic conversions, multilingual support, data consistency, and advanced recipe scaling
 
 ### Unit Categories
@@ -1231,8 +1241,8 @@ Traditional Vietnamese cooking units are supported:
 
 ## Best Practices
 
-1. **Unit References**: Always use `unit_id` foreign keys instead of legacy string units for new integrations
-2. **Backward Compatibility**: Legacy `unit` and `default_unit` string fields are still returned in responses but deprecated
+1. **Unit References**: Always use `unit_id` foreign keys - now REQUIRED for all ingredient and dish ingredient operations
+2. **Backward Compatibility**: Legacy `unit` and `default_unit` string fields are still returned in responses but deprecated. `unit_id` is now mandatory.
 3. **Pagination**: Always use pagination for list endpoints to improve performance
 4. **Filtering**: Use query parameters to filter results instead of fetching all data
 5. **Batch Operations**: Use batch endpoints when creating multiple items
@@ -1303,12 +1313,12 @@ api = ExploroAPI("YOUR_API_KEY")
 # Get available units
 units = api.get_units(category="mass", grouped=True)
 
-# Create ingredient with proper unit_id
+# Create ingredient with required unit_id
 ingredient_data = {
     "name_vi": "Cà chua",
     "name_en": "Tomato",
     "category_id": "vegetable_category_uuid",
-    "unit_id": "kg_unit_uuid",  # Use unit_id instead of unit string
+    "unit_id": "kg_unit_uuid",  # REQUIRED - use unit_id instead of unit string
     "current_price": 25000,
     "density": 1.0
 }
@@ -1376,12 +1386,12 @@ const api = new ExploroAPI("YOUR_API_KEY");
 // Get available units
 const units = await api.getUnits({ category: "mass", grouped: true });
 
-// Create ingredient with proper unit_id
+// Create ingredient with required unit_id
 const ingredientData = {
   name_vi: "Cà chua",
   name_en: "Tomato",
   category_id: "vegetable_category_uuid",
-  unit_id: "kg_unit_uuid", // Use unit_id instead of unit string
+  unit_id: "kg_unit_uuid", // REQUIRED - use unit_id instead of unit string
   current_price: 25000,
   density: 1.0,
 };

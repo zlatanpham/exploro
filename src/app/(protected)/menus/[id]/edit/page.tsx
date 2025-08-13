@@ -125,10 +125,10 @@ export default function MenuEditPage() {
         servings: menu.servings,
         visibility: menu.visibility as "private" | "public",
         start_date: menu.start_date
-          ? new Date(menu.start_date).toISOString().split("T")[0]
+          ? new Date(menu.start_date).toISOString().split("T")[0] || ""
           : "",
         end_date: menu.end_date
-          ? new Date(menu.end_date).toISOString().split("T")[0]
+          ? new Date(menu.end_date).toISOString().split("T")[0] || ""
           : "",
       });
       setMenuDishes(

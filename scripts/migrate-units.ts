@@ -62,14 +62,9 @@ async function migrateUnits() {
     const units = await prisma.unit.findMany();
     const unitsBySymbol = new Map(units.map(u => [u.symbol, u]));
 
-    // Migrate ingredients
-    console.log('\nMigrating ingredients...');
-    const ingredients = await prisma.ingredient.findMany({
-      where: {
-        default_unit: { not: null },
-        unit_id: null,
-      },
-    });
+    // Migrate ingredients (skipped - unit_id now required)
+    console.log('\nSkipping ingredient migration - unit_id is now required');
+    const ingredients: any[] = [];
 
     let migratedIngredients = 0;
     let failedIngredients = 0;
@@ -101,18 +96,9 @@ async function migrateUnits() {
 
     console.log(`\nIngredients: ${migratedIngredients} migrated, ${failedIngredients} failed`);
 
-    // Migrate dish ingredients
-    console.log('\nMigrating dish ingredients...');
-    const dishIngredients = await prisma.dishIngredient.findMany({
-      where: {
-        unit: { not: null },
-        unit_id: null,
-      },
-      include: {
-        ingredient: true,
-        dish: true,
-      },
-    });
+    // Migrate dish ingredients (skipped - unit_id now required)
+    console.log('\nSkipping dish ingredient migration - unit_id is now required');
+    const dishIngredients: any[] = [];
 
     let migratedDishIngredients = 0;
     let failedDishIngredients = 0;

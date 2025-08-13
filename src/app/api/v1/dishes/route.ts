@@ -226,7 +226,13 @@ export const POST = withApiAuth(
       data: {
         ...dishData,
         DishIngredient: {
-          create: ingredients,
+          create: ingredients.map(ing => ({
+            ingredient_id: ing.ingredient_id,
+            quantity: ing.quantity,
+            unit_id: ing.unit_id!,
+            notes: ing.notes,
+            optional: ing.optional || false,
+          })),
         },
         ...(tags &&
           tags.length > 0 && {
@@ -252,7 +258,7 @@ export const POST = withApiAuth(
 
     // Calculate total cost
     const totalCost = newDish.DishIngredient.reduce(
-      (sum, di) =>
+      (sum: number, di: any) =>
         sum + di.quantity.toNumber() * di.ingredient.current_price.toNumber(),
       0,
     );
@@ -276,7 +282,7 @@ export const POST = withApiAuth(
           status: newDish.status,
           created_at: newDish.created_at,
           updated_at: newDish.updated_at,
-          ingredients: newDish.DishIngredient.map((di) => ({
+          ingredients: newDish.DishIngredient.map((di: any) => ({
             ingredient_id: di.ingredient.id,
             name_vi: di.ingredient.name_vi,
             name_en: di.ingredient.name_en,
@@ -291,7 +297,7 @@ export const POST = withApiAuth(
             optional: di.optional,
             notes: di.notes,
           })),
-          tags: newDish.DishTag.map((dt) => ({
+          tags: newDish.DishTag.map((dt: any) => ({
             id: dt.tag.id,
             name_vi: dt.tag.name_vi,
             name_en: dt.tag.name_en,

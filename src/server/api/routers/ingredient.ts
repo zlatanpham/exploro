@@ -69,7 +69,13 @@ export const ingredientRouter = createTRPCRouter({
 
       const ingredient = await ctx.db.ingredient.create({
         data: {
-          ...input,
+          name_vi: input.name_vi,
+          name_en: input.name_en,
+          category: input.category,
+          unit_id: input.unit_id!,
+          current_price: input.current_price,
+          density: input.density,
+          seasonal_flag: input.seasonal_flag,
           price_updated_at: new Date(),
         },
       });
