@@ -5,8 +5,8 @@ import { TRPCError } from "@trpc/server";
 const dishInput = z.object({
   name_vi: z.string().min(1).max(255),
   name_en: z.string().max(255).optional(),
-  description_vi: z.string().min(1).max(200),
-  description_en: z.string().max(200).optional(),
+  description_vi: z.string().min(1).max(1000),
+  description_en: z.string().max(1000).optional(),
   instructions_vi: z.string().min(1),
   instructions_en: z.string().optional(),
   difficulty: z.enum(["easy", "medium", "hard"]),
