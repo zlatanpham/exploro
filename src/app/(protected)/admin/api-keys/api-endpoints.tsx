@@ -36,7 +36,7 @@ export const getEndpoints = (origin: string): Endpoint[] => [
           name_en: "Vegetables",
           description: "Fresh vegetables and root vegetables",
           created_at: "2024-01-01T00:00:00Z",
-          ingredients_count: 25
+          ingredients_count: 25,
         },
         {
           id: "uuid",
@@ -45,7 +45,7 @@ export const getEndpoints = (origin: string): Endpoint[] => [
           name_en: "Meat",
           description: "All types of meat including beef, pork, chicken",
           created_at: "2024-01-01T00:00:00Z",
-          ingredients_count: 15
+          ingredients_count: 15,
         },
         // ... more categories
       ],
@@ -92,6 +92,7 @@ const data = await response.json();`,
     response: {
       units: [
         {
+          id: "kg",
           value: "kg",
           name_vi: "Kilogram",
           name_en: "Kilogram",
@@ -101,6 +102,7 @@ const data = await response.json();`,
           factor_to_base: 1,
         },
         {
+          id: "g",
           value: "g",
           name_vi: "Gram",
           name_en: "Gram",
@@ -241,6 +243,7 @@ const data = await response.json();`,
     response: {
       categories: [
         {
+          id: "cooking_method",
           value: "cooking_method",
           name_vi: "Phương pháp nấu",
           name_en: "Cooking Method",
@@ -252,6 +255,7 @@ const data = await response.json();`,
           ],
         },
         {
+          id: "meal_type",
           value: "meal_type",
           name_vi: "Loại bữa ăn",
           name_en: "Meal Type",
@@ -263,6 +267,7 @@ const data = await response.json();`,
           ],
         },
         {
+          id: "cuisine",
           value: "cuisine",
           name_vi: "Ẩm thực vùng miền",
           name_en: "Cuisine",
@@ -274,6 +279,7 @@ const data = await response.json();`,
           ],
         },
         {
+          id: "dietary",
           value: "dietary",
           name_vi: "Chế độ ăn",
           name_en: "Dietary",
@@ -395,7 +401,7 @@ const data = await response.json();`,
         name_en: "Tomato", // Optional
         category: "vegetables", // Optional (legacy - use category_id instead)
         category_id: "uuid", // Recommended - foreign key to category
-        default_unit: "kg", // Optional (legacy - use unit_id instead) 
+        default_unit: "kg", // Optional (legacy - use unit_id instead)
         unit_id: "uuid", // Required - foreign key to unit
         current_price: 25000, // Required, must be positive
         density: 1.0, // Optional - g/ml for mass-volume conversion

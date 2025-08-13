@@ -4,6 +4,7 @@ import { withApiAuth } from "@/lib/api/middleware";
 // Define tag categories with translations
 const tagCategories = [
   {
+    id: "cooking_method",
     value: "cooking_method",
     name_vi: "Phương pháp nấu",
     name_en: "Cooking Method",
@@ -17,6 +18,7 @@ const tagCategories = [
     ],
   },
   {
+    id: "meal_type",
     value: "meal_type",
     name_vi: "Loại bữa ăn",
     name_en: "Meal Type",
@@ -30,6 +32,7 @@ const tagCategories = [
     ],
   },
   {
+    id: "cuisine",
     value: "cuisine",
     name_vi: "Ẩm thực vùng miền",
     name_en: "Cuisine",
@@ -43,6 +46,7 @@ const tagCategories = [
     ],
   },
   {
+    id: "dietary",
     value: "dietary",
     name_vi: "Chế độ ăn",
     name_en: "Dietary",
@@ -56,6 +60,7 @@ const tagCategories = [
     ],
   },
   {
+    id: "occasion",
     value: "occasion",
     name_vi: "Dịp lễ",
     name_en: "Occasion",
@@ -69,6 +74,7 @@ const tagCategories = [
     ],
   },
   {
+    id: "flavor",
     value: "flavor",
     name_vi: "Hương vị",
     name_en: "Flavor",
@@ -83,6 +89,7 @@ const tagCategories = [
     ],
   },
   {
+    id: "temperature",
     value: "temperature",
     name_vi: "Nhiệt độ",
     name_en: "Temperature",
@@ -94,6 +101,7 @@ const tagCategories = [
     ],
   },
   {
+    id: "texture",
     value: "texture",
     name_vi: "Kết cấu",
     name_en: "Texture",

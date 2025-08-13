@@ -189,6 +189,7 @@ Retrieve all available units for ingredient measurements with conversion factors
 {
   "units": [
     {
+      "id": "kg",
       "value": "kg",
       "name_vi": "Kilogram",
       "name_en": "Kilogram",
@@ -198,6 +199,7 @@ Retrieve all available units for ingredient measurements with conversion factors
       "factor_to_base": 1
     },
     {
+      "id": "g",
       "value": "g",
       "name_vi": "Gram",
       "name_en": "Gram",
@@ -207,6 +209,7 @@ Retrieve all available units for ingredient measurements with conversion factors
       "factor_to_base": 0.001
     },
     {
+      "id": "l",
       "value": "l",
       "name_vi": "Lít",
       "name_en": "Liter",
@@ -216,6 +219,7 @@ Retrieve all available units for ingredient measurements with conversion factors
       "factor_to_base": 1
     },
     {
+      "id": "ml",
       "value": "ml",
       "name_vi": "Mililít",
       "name_en": "Milliliter",
@@ -225,6 +229,7 @@ Retrieve all available units for ingredient measurements with conversion factors
       "factor_to_base": 0.001
     },
     {
+      "id": "cai",
       "value": "cái",
       "name_vi": "Cái",
       "name_en": "Piece",
@@ -234,6 +239,7 @@ Retrieve all available units for ingredient measurements with conversion factors
       "factor_to_base": 1
     },
     {
+      "id": "bo",
       "value": "bó",
       "name_vi": "Bó",
       "name_en": "Bunch",
@@ -243,6 +249,7 @@ Retrieve all available units for ingredient measurements with conversion factors
       "factor_to_base": 1
     },
     {
+      "id": "muong_canh",
       "value": "muỗng canh",
       "name_vi": "Muỗng canh",
       "name_en": "Tablespoon",
@@ -270,6 +277,7 @@ curl -X GET "http://localhost:3000/api/v1/ingredients/units?grouped=true" \
   "units": {
     "mass": [
       {
+        "id": "kg",
         "value": "kg",
         "name_vi": "Kilogram",
         "name_en": "Kilogram",
@@ -279,6 +287,7 @@ curl -X GET "http://localhost:3000/api/v1/ingredients/units?grouped=true" \
         "factor_to_base": 1
       },
       {
+        "id": "g",
         "value": "g",
         "name_vi": "Gram",
         "name_en": "Gram",
@@ -290,6 +299,7 @@ curl -X GET "http://localhost:3000/api/v1/ingredients/units?grouped=true" \
     ],
     "volume": [
       {
+        "id": "l",
         "value": "l",
         "name_vi": "Lít",
         "name_en": "Liter",
@@ -299,6 +309,7 @@ curl -X GET "http://localhost:3000/api/v1/ingredients/units?grouped=true" \
         "factor_to_base": 1
       },
       {
+        "id": "ml",
         "value": "ml",
         "name_vi": "Mililít",
         "name_en": "Milliliter",
@@ -310,6 +321,7 @@ curl -X GET "http://localhost:3000/api/v1/ingredients/units?grouped=true" \
     ],
     "count": [
       {
+        "id": "cai",
         "value": "cái",
         "name_vi": "Cái",
         "name_en": "Piece",
@@ -321,6 +333,7 @@ curl -X GET "http://localhost:3000/api/v1/ingredients/units?grouped=true" \
     ],
     "bundle": [
       {
+        "id": "bo",
         "value": "bó",
         "name_vi": "Bó",
         "name_en": "Bunch",
@@ -332,6 +345,7 @@ curl -X GET "http://localhost:3000/api/v1/ingredients/units?grouped=true" \
     ],
     "cooking": [
       {
+        "id": "muong_canh",
         "value": "muỗng canh",
         "name_vi": "Muỗng canh",
         "name_en": "Tablespoon",
@@ -373,10 +387,10 @@ Retrieve a paginated list of ingredients with optional filtering.
       "id": "uuid",
       "name_vi": "Cà chua",
       "name_en": "Tomato",
-      "category": "vegetables", // legacy field
-      "category_id": "uuid", // new foreign key
-      "default_unit": "kg", // legacy field
-      "unit_id": "uuid", // new foreign key
+      "category": "vegetables", // legacy field (deprecated)
+      "category_id": "uuid", // foreign key to IngredientCategory
+      "default_unit": "kg", // legacy field (deprecated - use unit_id)
+      "unit_id": "uuid", // foreign key to Unit table
       "current_price": 25000,
       "density": 1.0, // g/ml for mass-volume conversion
       "seasonal_flag": false,
@@ -414,8 +428,7 @@ Create a new ingredient with automatic duplicate detection.
     "name_en": "Tomato", // Optional
     "category": "vegetables", // Optional (legacy - use category_id instead)
     "category_id": "uuid", // Recommended - foreign key to category
-    "default_unit": "kg", // Optional (legacy - use unit_id instead)
-    "unit_id": "uuid", // Required - foreign key to unit
+    "unit_id": "uuid", // Required - foreign key to unit (replaces legacy default_unit)
     "current_price": 25000, // Required, must be positive
     "density": 1.0, // Optional - g/ml for mass-volume conversion
     "seasonal_flag": false // Optional, defaults to false
@@ -533,7 +546,6 @@ Create up to 50 ingredients in a single request.
       "name_en": "Tomato",
       "category": "vegetables", // Optional (legacy - use category_id instead)
       "category_id": "uuid", // Recommended - foreign key to category
-      "default_unit": "kg", // Optional (legacy - use unit_id instead)
       "unit_id": "uuid", // Required - foreign key to unit
       "current_price": 25000,
       "density": 1.0, // Optional - g/ml for mass-volume conversion
@@ -720,7 +732,13 @@ Retrieve a paginated list of dishes with optional filtering.
           "name_vi": "Thịt bò",
           "name_en": "Beef",
           "quantity": 0.5,
-          "unit": "kg",
+          "unit_id": "uuid",
+          "unit": {
+            "id": "uuid",
+            "symbol": "kg",
+            "name_vi": "Kilogram",
+            "name_en": "Kilogram"
+          },
           "optional": false,
           "notes": "Nạm hoặc gầu"
         }
@@ -765,7 +783,7 @@ Create a new dish with ingredient associations and tags.
     {
       "ingredient_id": "uuid", // Required
       "quantity": 0.5, // Required, must be positive
-      "unit": "kg", // Required
+      "unit_id": "uuid", // Required - foreign key to Unit table
       "optional": false, // Optional, defaults to false
       "notes": "Nạm hoặc gầu" // Optional
     }
@@ -843,6 +861,7 @@ Retrieve all available tag categories for dish classification.
 {
   "categories": [
     {
+      "id": "cooking_method",
       "value": "cooking_method",
       "name_vi": "Phương pháp nấu",
       "name_en": "Cooking Method",
@@ -856,6 +875,7 @@ Retrieve all available tag categories for dish classification.
       ]
     },
     {
+      "id": "meal_type",
       "value": "meal_type",
       "name_vi": "Loại bữa ăn",
       "name_en": "Meal Type",
@@ -869,6 +889,7 @@ Retrieve all available tag categories for dish classification.
       ]
     },
     {
+      "id": "cuisine",
       "value": "cuisine",
       "name_vi": "Ẩm thực vùng miền",
       "name_en": "Cuisine",
@@ -882,6 +903,7 @@ Retrieve all available tag categories for dish classification.
       ]
     },
     {
+      "id": "dietary",
       "value": "dietary",
       "name_vi": "Chế độ ăn",
       "name_en": "Dietary",
@@ -895,6 +917,7 @@ Retrieve all available tag categories for dish classification.
       ]
     },
     {
+      "id": "occasion",
       "value": "occasion",
       "name_vi": "Dịp lễ",
       "name_en": "Occasion",
@@ -908,6 +931,7 @@ Retrieve all available tag categories for dish classification.
       ]
     },
     {
+      "id": "flavor",
       "value": "flavor",
       "name_vi": "Hương vị",
       "name_en": "Flavor",
@@ -922,6 +946,7 @@ Retrieve all available tag categories for dish classification.
       ]
     },
     {
+      "id": "temperature",
       "value": "temperature",
       "name_vi": "Nhiệt độ",
       "name_en": "Temperature",
@@ -933,6 +958,7 @@ Retrieve all available tag categories for dish classification.
       ]
     },
     {
+      "id": "texture",
       "value": "texture",
       "name_vi": "Kết cấu",
       "name_en": "Texture",
@@ -1136,7 +1162,15 @@ Create a new menu with dish associations.
 
 ## Unit System
 
-The API includes a comprehensive unit system for ingredient measurements.
+The API includes a comprehensive unit system for ingredient measurements with support for automatic unit conversions and cost calculations.
+
+### Migration Notice
+
+**Important**: The unit system has been migrated from string-based units to a relational foreign key system:
+
+- **Legacy**: `unit: "kg"` and `default_unit: "kg"` (deprecated)
+- **Current**: `unit_id: "uuid"` with full unit object in responses
+- **Benefits**: Automatic conversions, multilingual support, data consistency, and advanced recipe scaling
 
 ### Unit Categories
 
@@ -1164,22 +1198,48 @@ The API includes a comprehensive unit system for ingredient measurements.
 
 ### Unit Conversions
 
-Units within the same category can be converted using the `factor_to_base` field. Cross-category conversions (e.g., volume to mass) require ingredient-specific density values.
+The API supports automatic unit conversions with several capabilities:
 
-Example conversions:
+#### Within Same Category
+
+Units within the same category can be converted using the `factor_to_base` field:
 
 - 1 kg = 1000 g (factor_to_base: 1.0 for kg, 0.001 for g)
 - 1 l = 1000 ml (factor_to_base: 1.0 for l, 0.001 for ml)
-- 1 bó rau ≈ 0.3 kg (ingredient-specific)
+
+#### Cross-Category Conversions
+
+Volume-to-mass conversions use ingredient-specific density values:
+
+- 1 l water ≈ 1 kg (density: 1.0 g/ml)
+- 1 l oil ≈ 0.92 kg (density: 0.92 g/ml)
+
+#### Vietnamese Cooking Units
+
+Traditional Vietnamese cooking units are supported:
+
+- `thìa` (tablespoon) = ~15 ml
+- `thìa nhỏ` (teaspoon) = ~5 ml
+- `chén` (bowl) = ~200 ml
+- `bát` (large bowl) = ~300 ml
+
+#### Advanced Features
+
+- **Recipe Scaling**: Automatically convert quantities when scaling recipes
+- **Cost Calculation**: Convert ingredient costs between different units
+- **Smart Suggestions**: API suggests appropriate units based on ingredient categories
 
 ## Best Practices
 
-1. **Pagination**: Always use pagination for list endpoints to improve performance
-2. **Filtering**: Use query parameters to filter results instead of fetching all data
-3. **Batch Operations**: Use batch endpoints when creating multiple items
-4. **Error Handling**: Always check for error responses and handle them appropriately
-5. **Rate Limiting**: Implement exponential backoff when rate limited
-6. **Duplicate Detection**: The API automatically detects duplicates for ingredients and tags
+1. **Unit References**: Always use `unit_id` foreign keys instead of legacy string units for new integrations
+2. **Backward Compatibility**: Legacy `unit` and `default_unit` string fields are still returned in responses but deprecated
+3. **Pagination**: Always use pagination for list endpoints to improve performance
+4. **Filtering**: Use query parameters to filter results instead of fetching all data
+5. **Batch Operations**: Use batch endpoints when creating multiple items
+6. **Error Handling**: Always check for error responses and handle them appropriately
+7. **Rate Limiting**: Implement exponential backoff when rate limited
+8. **Duplicate Detection**: The API automatically detects duplicates for ingredients and tags
+9. **Unit Conversions**: Leverage the automatic conversion system for recipe scaling and cost calculations
 
 ## Code Examples
 
@@ -1222,9 +1282,37 @@ class ExploroAPI:
         )
         return response.json()
 
+    def get_units(self, category=None, grouped=False):
+        """Get available units for ingredient measurements"""
+        params = {}
+        if category:
+            params["category"] = category
+        if grouped:
+            params["grouped"] = "true"
+
+        response = requests.get(
+            f"{self.base_url}/ingredients/units",
+            headers=self.headers,
+            params=params
+        )
+        return response.json()
+
 # Usage
 api = ExploroAPI("YOUR_API_KEY")
-ingredients = api.list_ingredients(category="vegetable")
+
+# Get available units
+units = api.get_units(category="mass", grouped=True)
+
+# Create ingredient with proper unit_id
+ingredient_data = {
+    "name_vi": "Cà chua",
+    "name_en": "Tomato",
+    "category_id": "vegetable_category_uuid",
+    "unit_id": "kg_unit_uuid",  # Use unit_id instead of unit string
+    "current_price": 25000,
+    "density": 1.0
+}
+result = api.create_ingredient(ingredient_data)
 ```
 
 ### JavaScript/TypeScript
@@ -1275,11 +1363,29 @@ class ExploroAPI {
       body: JSON.stringify({ ingredient }),
     });
   }
+
+  async getUnits(params?: { category?: string; grouped?: boolean }) {
+    const queryString = new URLSearchParams(params as any).toString();
+    return this.request(`/ingredients/units?${queryString}`);
+  }
 }
 
 // Usage
 const api = new ExploroAPI("YOUR_API_KEY");
-const ingredients = await api.listIngredients({ category: "vegetables" });
+
+// Get available units
+const units = await api.getUnits({ category: "mass", grouped: true });
+
+// Create ingredient with proper unit_id
+const ingredientData = {
+  name_vi: "Cà chua",
+  name_en: "Tomato",
+  category_id: "vegetable_category_uuid",
+  unit_id: "kg_unit_uuid", // Use unit_id instead of unit string
+  current_price: 25000,
+  density: 1.0,
+};
+const result = await api.createIngredient(ingredientData);
 ```
 
 ## Support

@@ -5,6 +5,7 @@ import { withApiAuth } from "@/lib/api/middleware";
 const ingredientUnits = [
   // Mass units
   {
+    id: "kg",
     value: "kg",
     name_vi: "Kilogram",
     name_en: "Kilogram",
@@ -14,6 +15,7 @@ const ingredientUnits = [
     factor_to_base: 1,
   },
   {
+    id: "g",
     value: "g",
     name_vi: "Gram",
     name_en: "Gram",
@@ -23,6 +25,7 @@ const ingredientUnits = [
     factor_to_base: 0.001,
   },
   {
+    id: "mg",
     value: "mg",
     name_vi: "Miligram",
     name_en: "Milligram",
@@ -32,6 +35,7 @@ const ingredientUnits = [
     factor_to_base: 0.000001,
   },
   {
+    id: "tan",
     value: "tấn",
     name_vi: "Tấn",
     name_en: "Ton",
@@ -43,6 +47,7 @@ const ingredientUnits = [
 
   // Volume units
   {
+    id: "l",
     value: "l",
     name_vi: "Lít",
     name_en: "Liter",
@@ -52,6 +57,7 @@ const ingredientUnits = [
     factor_to_base: 1,
   },
   {
+    id: "ml",
     value: "ml",
     name_vi: "Mililít",
     name_en: "Milliliter",
@@ -61,6 +67,7 @@ const ingredientUnits = [
     factor_to_base: 0.001,
   },
   {
+    id: "cl",
     value: "cl",
     name_vi: "Centilít",
     name_en: "Centiliter",
@@ -70,6 +77,7 @@ const ingredientUnits = [
     factor_to_base: 0.01,
   },
   {
+    id: "dl",
     value: "dl",
     name_vi: "Decilít",
     name_en: "Deciliter",
@@ -81,6 +89,7 @@ const ingredientUnits = [
 
   // Count units
   {
+    id: "cai",
     value: "cái",
     name_vi: "Cái",
     name_en: "Piece",
@@ -90,6 +99,7 @@ const ingredientUnits = [
     factor_to_base: 1,
   },
   {
+    id: "chiec",
     value: "chiếc",
     name_vi: "Chiếc",
     name_en: "Item",
@@ -99,6 +109,7 @@ const ingredientUnits = [
     factor_to_base: 1,
   },
   {
+    id: "con",
     value: "con",
     name_vi: "Con",
     name_en: "Animal/Fish (count)",
@@ -108,6 +119,7 @@ const ingredientUnits = [
     factor_to_base: 1,
   },
   {
+    id: "qua",
     value: "quả",
     name_vi: "Quả",
     name_en: "Fruit/Egg (count)",
@@ -119,6 +131,7 @@ const ingredientUnits = [
 
   // Bundle units
   {
+    id: "bo",
     value: "bó",
     name_vi: "Bó",
     name_en: "Bunch",
@@ -128,6 +141,7 @@ const ingredientUnits = [
     factor_to_base: 1,
   },
   {
+    id: "bui",
     value: "bụi",
     name_vi: "Bụi",
     name_en: "Bush/Clump",
@@ -137,6 +151,7 @@ const ingredientUnits = [
     factor_to_base: 1,
   },
   {
+    id: "nai",
     value: "nải",
     name_vi: "Nải",
     name_en: "Hand (of bananas)",
@@ -146,6 +161,7 @@ const ingredientUnits = [
     factor_to_base: 1,
   },
   {
+    id: "chum",
     value: "chùm",
     name_vi: "Chùm",
     name_en: "Cluster",
@@ -157,6 +173,7 @@ const ingredientUnits = [
 
   // Vietnamese cooking units
   {
+    id: "muong_canh",
     value: "muỗng canh",
     name_vi: "Muỗng canh",
     name_en: "Tablespoon",
@@ -166,6 +183,7 @@ const ingredientUnits = [
     factor_to_base: 0.015, // ~15ml
   },
   {
+    id: "muong_ca_phe",
     value: "muỗng cà phê",
     name_vi: "Muỗng cà phê",
     name_en: "Teaspoon",
@@ -175,6 +193,7 @@ const ingredientUnits = [
     factor_to_base: 0.005, // ~5ml
   },
   {
+    id: "chen",
     value: "chén",
     name_vi: "Chén",
     name_en: "Bowl",
@@ -184,6 +203,7 @@ const ingredientUnits = [
     factor_to_base: 0.2, // ~200ml
   },
   {
+    id: "bat",
     value: "bát",
     name_vi: "Bát",
     name_en: "Large bowl",
