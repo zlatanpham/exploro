@@ -415,14 +415,14 @@ async function seedUnits() {
     where: { symbol: 'muỗng' },
     update: {},
     create: {
-      category_id: countCategory.id,
+      category_id: massCategory.id,
       symbol: 'muỗng',
       name_vi: 'muỗng',
       name_en: 'spoon',
       plural_vi: 'muỗng',
       plural_en: 'spoons',
       is_base_unit: false,
-      factor_to_base: 1,
+      factor_to_base: 0.015, // 15g = 0.015kg
     },
   });
 
@@ -477,6 +477,12 @@ async function seedUnits() {
       { from_unit_id: bowl.id, to_unit_id: l.id, factor: 0.5, is_direct: true },
       { from_unit_id: l.id, to_unit_id: largeBowl.id, factor: 1.333, is_direct: true },
       { from_unit_id: largeBowl.id, to_unit_id: l.id, factor: 0.75, is_direct: true },
+      // Mass conversions are handled automatically by category
+      // Spoon (mass) conversions to other mass units
+      { from_unit_id: spoon.id, to_unit_id: g.id, factor: 15, is_direct: true },
+      { from_unit_id: g.id, to_unit_id: spoon.id, factor: 0.0667, is_direct: true },
+      { from_unit_id: spoon.id, to_unit_id: kg.id, factor: 0.015, is_direct: true },
+      { from_unit_id: kg.id, to_unit_id: spoon.id, factor: 66.667, is_direct: true },
     ],
   });
 

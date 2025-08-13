@@ -267,6 +267,8 @@ export default function DishDetailPage() {
                         )}
                         <div className="text-xs text-muted-foreground mt-1">
                           {formatPrice(
+                            // Use converted quantity if available (this accounts for unit conversion)
+                            // Otherwise fallback to original quantity
                             di.converted_quantity 
                               ? toNumber(di.converted_quantity) * toNumber(di.ingredient.current_price)
                               : toNumber(di.quantity) * toNumber(di.ingredient.current_price)

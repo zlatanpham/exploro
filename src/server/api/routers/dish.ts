@@ -110,7 +110,7 @@ export const dishRouter = createTRPCRouter({
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const dish = await ctx.db.dish.findUnique({
+      let dish = await ctx.db.dish.findUnique({
         where: { id: input.id },
         include: {
           DishIngredient: {
@@ -143,35 +143,68 @@ export const dishRouter = createTRPCRouter({
         });
       }
 
-      // Calculate total cost with unit conversion
+      // Calculate total cost and ensure converted quantities are populated
       const { UnitConversionService } = await import('../../services/unitConversion');
       const conversionService = new UnitConversionService(ctx.db);
       
       let totalCost = 0;
+      const updatedDishIngredients = [];
+      
       for (const di of dish.DishIngredient) {
         let quantityInBaseUnit = di.quantity.toNumber();
+        let needsUpdate = false;
         
-        // Apply unit conversion if units are different
+        // Apply unit conversion if units are different and converted_quantity is not set
         if (di.unit_id && di.ingredient.unit_id && di.unit_id !== di.ingredient.unit_id) {
-          const result = await conversionService.convert(
-            di.quantity,
-            di.unit_id,
-            di.ingredient.unit_id
-          );
-          
-          if (result.success && result.convertedValue) {
-            quantityInBaseUnit = result.convertedValue.toNumber();
+          if (!di.converted_quantity) {
+            let result = await conversionService.convert(
+              di.quantity,
+              di.unit_id,
+              di.ingredient.unit_id
+            );
+            
+            // If regular conversion failed, try density-based conversion
+            if (!result.success && di.ingredient.density) {
+              console.log(`Trying density conversion for ${di.ingredient.name_vi}: density ${di.ingredient.density} g/ml`);
+              result = await conversionService.convertWithDensity(
+                di.quantity,
+                di.unit_id,
+                di.ingredient.unit_id,
+                di.ingredient.density
+              );
+            }
+            
+            if (result.success && result.convertedValue) {
+              quantityInBaseUnit = result.convertedValue.toNumber();
+              needsUpdate = true;
+              
+              // Update the database record with converted quantity
+              await ctx.db.dishIngredient.update({
+                where: { id: di.id },
+                data: {
+                  converted_quantity: result.convertedValue,
+                  conversion_factor: result.convertedValue.div(di.quantity),
+                }
+              });
+              
+              // Update the local object for return
+              di.converted_quantity = result.convertedValue;
+              di.conversion_factor = result.convertedValue.div(di.quantity);
+            } else {
+              console.warn(`Failed to convert from ${di.unit_id} to ${di.ingredient.unit_id}:`, result.error);
+            }
           } else {
-            // Log warning but continue with original quantity
-            console.warn(`Failed to convert from ${di.unit_id} to ${di.ingredient.unit_id}:`, result.error);
+            quantityInBaseUnit = di.converted_quantity.toNumber();
           }
         }
         
         totalCost += quantityInBaseUnit * di.ingredient.current_price.toNumber();
+        updatedDishIngredients.push(di);
       }
 
       return {
         ...dish,
+        DishIngredient: updatedDishIngredients,
         totalCost,
       };
     }),
