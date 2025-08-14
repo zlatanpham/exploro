@@ -181,23 +181,26 @@ export const menuRouter = createTRPCRouter({
 
       menu.MenuDish.forEach((menuDish) => {
         const dishQuantity = menuDish.quantity;
+        const servingMultiplier = menu.servings / menuDish.dish.servings;
+
         menuDish.dish.DishIngredient.forEach((dishIngredient) => {
           const key = dishIngredient.ingredient_id;
+          const scaledQuantity =
+            (dishIngredient.converted_quantity?.toNumber() ||
+              dishIngredient.quantity.toNumber()) *
+            dishQuantity *
+            servingMultiplier;
           const existing = ingredientMap.get(key);
 
           if (existing) {
-            existing.totalQuantity +=
-              (dishIngredient.converted_quantity?.toNumber() ||
-                dishIngredient.quantity.toNumber()) * dishQuantity;
+            existing.totalQuantity += scaledQuantity;
             if (!existing.dishes.includes(menuDish.dish.name_vi)) {
               existing.dishes.push(menuDish.dish.name_vi);
             }
           } else {
             ingredientMap.set(key, {
               ingredient: dishIngredient.ingredient,
-              totalQuantity:
-                (dishIngredient.converted_quantity?.toNumber() ||
-                  dishIngredient.quantity.toNumber()) * dishQuantity,
+              totalQuantity: scaledQuantity,
               unit:
                 dishIngredient.unit || dishIngredient.unit_ref?.symbol || "",
               dishes: [menuDish.dish.name_vi],

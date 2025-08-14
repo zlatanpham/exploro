@@ -72,13 +72,14 @@ export const GET = withApiAuth(
     // Calculate costs
     const menusWithCost = menus.map((menu) => {
       const totalCost = menu.MenuDish.reduce((menuSum, md) => {
+        const servingMultiplier = menu.servings / md.dish.servings;
         const dishCost = md.dish.DishIngredient.reduce(
           (dishSum, di) =>
             dishSum +
             di.quantity.toNumber() * di.ingredient.current_price.toNumber(),
           0,
         );
-        return menuSum + dishCost * md.quantity;
+        return menuSum + dishCost * md.quantity * servingMultiplier;
       }, 0);
 
       return {
