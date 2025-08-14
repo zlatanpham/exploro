@@ -49,8 +49,102 @@ export default function DishesPage() {
     );
 
   const { data: tags } = api.tag.getAll.useQuery();
-  const toggleFavorite = api.dish.toggleFavorite.useMutation();
+  const utils = api.useUtils();
   const { data: favorites } = api.dish.getFavorites.useQuery();
+
+  const toggleFavorite = api.dish.toggleFavorite.useMutation({
+    onMutate: async ({ dishId }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await utils.dish.getFavorites.cancel();
+      await utils.dish.getAll.cancel();
+
+      // Snapshot the previous values
+      const previousFavorites = utils.dish.getFavorites.getData();
+      const previousDishes = utils.dish.getAll.getInfiniteData();
+
+      // Optimistically update the favorites
+      const isFavorited = favoriteIds.has(dishId);
+
+      if (isFavorited) {
+        // Remove from favorites
+        utils.dish.getFavorites.setData(undefined, (old) =>
+          old?.filter((dish) => dish.id !== dishId),
+        );
+      } else {
+        // Add to favorites - we need to find the dish data
+        const dish = uniqueDishes.find((d) => d.id === dishId);
+        if (dish) {
+          utils.dish.getFavorites.setData(undefined, (old) => [
+            dish,
+            ...(old || []),
+          ]);
+        }
+      }
+
+      // Optimistically update the dish count in the infinite query data
+      utils.dish.getAll.setInfiniteData(
+        {
+          search: searchQuery,
+          difficulty: difficulty === "all" ? undefined : (difficulty as any),
+          maxCookTime:
+            maxCookTime === "all" ? undefined : parseInt(maxCookTime),
+          tags: selectedTags.length > 0 ? selectedTags : undefined,
+          limit: 12,
+        },
+        (old) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              dishes: page.dishes.map((dish) => {
+                if (dish.id === dishId) {
+                  return {
+                    ...dish,
+                    _count: {
+                      ...dish._count,
+                      FavoriteDish: isFavorited
+                        ? Math.max(0, dish._count.FavoriteDish - 1)
+                        : dish._count.FavoriteDish + 1,
+                    },
+                  };
+                }
+                return dish;
+              }),
+            })),
+          };
+        },
+      );
+
+      // Return a context object with the snapshotted values
+      return { previousFavorites, previousDishes };
+    },
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousFavorites) {
+        utils.dish.getFavorites.setData(undefined, context.previousFavorites);
+      }
+      if (context?.previousDishes) {
+        utils.dish.getAll.setInfiniteData(
+          {
+            search: searchQuery,
+            difficulty: difficulty === "all" ? undefined : (difficulty as any),
+            maxCookTime:
+              maxCookTime === "all" ? undefined : parseInt(maxCookTime),
+            tags: selectedTags.length > 0 ? selectedTags : undefined,
+            limit: 12,
+          },
+          context.previousDishes,
+        );
+      }
+    },
+    onSettled: () => {
+      // Always refetch after error or success to sync with server state
+      void utils.dish.getFavorites.invalidate();
+      void utils.dish.getAll.invalidate();
+    },
+  });
 
   const dishes = data?.pages.flatMap((page) => page.dishes) ?? [];
   // Deduplicate dishes by id to handle search variations that match the same dish
@@ -59,8 +153,8 @@ export default function DishesPage() {
   );
   const favoriteIds = new Set(favorites?.map((f) => f.id) ?? []);
 
-  const handleToggleFavorite = async (dishId: string) => {
-    await toggleFavorite.mutateAsync({ dishId });
+  const handleToggleFavorite = (dishId: string) => {
+    toggleFavorite.mutate({ dishId });
   };
 
   const formatCookTime = (minutes: number) => {
@@ -202,7 +296,7 @@ export default function DishesPage() {
                     size="sm"
                     onClick={(e) => {
                       e.preventDefault();
-                      void handleToggleFavorite(dish.id);
+                      handleToggleFavorite(dish.id);
                     }}
                   >
                     <Heart

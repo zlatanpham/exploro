@@ -510,6 +510,61 @@ export const dishRouter = createTRPCRouter({
   toggleFavorite: protectedProcedure
     .input(z.object({ dishId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      // Debug: Log user and dish IDs
+      console.log("toggleFavorite called with:", {
+        userId: ctx.session.user.id,
+        dishId: input.dishId,
+        userEmail: ctx.session.user.email,
+        userName: ctx.session.user.name,
+      });
+
+      // Verify user exists in database, create if missing (for JWT sessions)
+      const userExists = await ctx.db.user.findUnique({
+        where: { id: ctx.session.user.id },
+        select: { id: true, email: true },
+      });
+
+      if (!userExists) {
+        console.warn(
+          "User not found in database, attempting to create:",
+          ctx.session.user.id,
+        );
+
+        // Try to create the user (this handles cases where JWT session exists but user record doesn't)
+        try {
+          await ctx.db.user.create({
+            data: {
+              id: ctx.session.user.id,
+              email: ctx.session.user.email,
+              name: ctx.session.user.name,
+              role: ctx.session.user.role || "user",
+              language_preference: ctx.session.user.language_preference || "vi",
+            },
+          });
+          console.log("User created successfully:", ctx.session.user.id);
+        } catch (createError) {
+          console.error("Failed to create user:", createError);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to create user record",
+          });
+        }
+      }
+
+      // Verify dish exists
+      const dishExists = await ctx.db.dish.findUnique({
+        where: { id: input.dishId },
+        select: { id: true },
+      });
+
+      if (!dishExists) {
+        console.error("Dish not found:", input.dishId);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Dish not found",
+        });
+      }
+
       const existing = await ctx.db.favoriteDish.findUnique({
         where: {
           user_id_dish_id: {

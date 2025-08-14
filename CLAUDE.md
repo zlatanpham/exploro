@@ -92,6 +92,7 @@ Core entities for authentication and multi-tenant support:
 - **tRPC Integration**: Server-side procedures with client-side React Query caching
 - **Organization Context**: React context for multi-tenant data scoping
 - **Session Management**: NextAuth session integration with tRPC context
+- **Optimistic Updates**: Immediate UI updates with rollback on failure for better UX
 
 ### Environment Setup
 
@@ -151,3 +152,54 @@ This application includes comprehensive Vietnamese diacritic-insensitive search 
 
 **Technical Details:**
 The implementation generates systematic character variations (e.g., "a" → "à", "á", "ạ", "ả") and word combinations to create comprehensive search terms without relying on hardcoded word mappings. This ensures the search scales to any Vietnamese content without manual maintenance.
+
+### Optimistic Updates Pattern
+
+For better user experience, implement optimistic updates for UI interactions that modify server state:
+
+**Implementation Pattern:**
+
+```typescript
+const utils = api.useUtils();
+const mutation = api.example.mutate.useMutation({
+  onMutate: async (variables) => {
+    // Cancel outgoing refetches
+    await utils.example.getData.cancel();
+
+    // Snapshot previous value
+    const previousData = utils.example.getData.getData();
+
+    // Optimistically update cache
+    utils.example.getData.setData(variables.id, (old) => ({
+      ...old,
+      // Apply optimistic changes
+    }));
+
+    return { previousData };
+  },
+  onError: (err, variables, context) => {
+    // Rollback on error
+    if (context?.previousData) {
+      utils.example.getData.setData(variables.id, context.previousData);
+    }
+  },
+  onSettled: () => {
+    // Sync with server state
+    void utils.example.getData.invalidate();
+  },
+});
+```
+
+**Usage Guidelines:**
+
+- Always implement optimistic updates for favorites, likes, toggles, and similar instant feedback actions
+- Use `onMutate` to immediately update the UI
+- Store previous state in context for rollback capability
+- Handle errors gracefully with `onError` rollback
+- Always sync with server state in `onSettled`
+- Cancel ongoing queries with `utils.query.cancel()` to prevent race conditions
+
+**Current Implementation:**
+
+- Favorite/unfavorite dishes: Immediate heart icon feedback with server sync
+- All toggle-based interactions should follow this pattern
