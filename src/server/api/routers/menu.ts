@@ -27,7 +27,7 @@ export const menuRouter = createTRPCRouter({
         visibility: z.enum(["private", "public", "all"]).optional(),
         limit: z.number().min(1).max(100).optional(),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const limit = input.limit ?? 20;
@@ -70,7 +70,7 @@ export const menuRouter = createTRPCRouter({
         search: z.string().optional(),
         limit: z.number().min(1).max(100).optional(),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const limit = input.limit ?? 20;
@@ -158,7 +158,10 @@ export const menuRouter = createTRPCRouter({
       }
 
       // Check permissions
-      if (menu.visibility === "private" && menu.user_id !== ctx.session.user.id) {
+      if (
+        menu.visibility === "private" &&
+        menu.user_id !== ctx.session.user.id
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You don't have permission to view this menu",
@@ -166,12 +169,15 @@ export const menuRouter = createTRPCRouter({
       }
 
       // Calculate aggregated ingredients and total cost
-      const ingredientMap = new Map<string, {
-        ingredient: any;
-        totalQuantity: number;
-        unit: string;
-        dishes: string[];
-      }>();
+      const ingredientMap = new Map<
+        string,
+        {
+          ingredient: any;
+          totalQuantity: number;
+          unit: string;
+          dishes: string[];
+        }
+      >();
 
       menu.MenuDish.forEach((menuDish) => {
         const dishQuantity = menuDish.quantity;
@@ -180,15 +186,20 @@ export const menuRouter = createTRPCRouter({
           const existing = ingredientMap.get(key);
 
           if (existing) {
-            existing.totalQuantity += dishIngredient.quantity.toNumber() * dishQuantity;
+            existing.totalQuantity +=
+              (dishIngredient.converted_quantity?.toNumber() ||
+                dishIngredient.quantity.toNumber()) * dishQuantity;
             if (!existing.dishes.includes(menuDish.dish.name_vi)) {
               existing.dishes.push(menuDish.dish.name_vi);
             }
           } else {
             ingredientMap.set(key, {
               ingredient: dishIngredient.ingredient,
-              totalQuantity: dishIngredient.quantity.toNumber() * dishQuantity,
-              unit: dishIngredient.unit || dishIngredient.unit_ref?.symbol || "",
+              totalQuantity:
+                (dishIngredient.converted_quantity?.toNumber() ||
+                  dishIngredient.quantity.toNumber()) * dishQuantity,
+              unit:
+                dishIngredient.unit || dishIngredient.unit_ref?.symbol || "",
               dishes: [menuDish.dish.name_vi],
             });
           }
@@ -197,7 +208,9 @@ export const menuRouter = createTRPCRouter({
 
       const aggregatedIngredients = Array.from(ingredientMap.values());
       const totalCost = aggregatedIngredients.reduce((sum, item) => {
-        return sum + item.totalQuantity * item.ingredient.current_price.toNumber();
+        return (
+          sum + item.totalQuantity * item.ingredient.current_price.toNumber()
+        );
       }, 0);
 
       const costPerPerson = menu.servings > 0 ? totalCost / menu.servings : 0;
@@ -216,7 +229,7 @@ export const menuRouter = createTRPCRouter({
       z.object({
         menu: menuInput,
         dishes: z.array(menuDishInput).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Ensure user exists by finding them first
@@ -224,19 +237,19 @@ export const menuRouter = createTRPCRouter({
       const user = await ctx.db.user.findUnique({
         where: { id: userId },
       });
-      
+
       if (!user) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "User not found. Please log in again.",
         });
       }
-      
+
       const menu = await ctx.db.menu.create({
         data: {
           ...input.menu,
           user: {
-            connect: { id: user.id }
+            connect: { id: user.id },
           },
           ...(input.dishes && input.dishes.length > 0
             ? {
@@ -265,7 +278,7 @@ export const menuRouter = createTRPCRouter({
         id: z.string(),
         menu: menuInput.partial(),
         dishes: z.array(menuDishInput).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const existingMenu = await ctx.db.menu.findUnique({
@@ -368,7 +381,10 @@ export const menuRouter = createTRPCRouter({
       }
 
       // Check permissions
-      if (sourceMenu.visibility === "private" && sourceMenu.user_id !== ctx.session.user.id) {
+      if (
+        sourceMenu.visibility === "private" &&
+        sourceMenu.user_id !== ctx.session.user.id
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You don't have permission to duplicate this menu",
@@ -382,7 +398,7 @@ export const menuRouter = createTRPCRouter({
           servings: sourceMenu.servings,
           visibility: "private",
           user: {
-            connect: { id: ctx.session.user.id }
+            connect: { id: ctx.session.user.id },
           },
           MenuDish: {
             create: sourceMenu.MenuDish.map((dish) => ({
@@ -413,7 +429,7 @@ export const menuRouter = createTRPCRouter({
         menuId: z.string(),
         permissions: z.enum(["view", "clone"]).optional(),
         expiresIn: z.number().optional(), // hours
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const menu = await ctx.db.menu.findUnique({

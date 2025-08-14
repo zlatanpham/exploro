@@ -293,9 +293,13 @@ export default function MenuDetailPage() {
                   {menu.MenuDish.map((menuDish) => {
                     const dishCost =
                       menuDish.dish.DishIngredient.reduce((sum, di) => {
-                        const quantity =
-                          typeof di.quantity === "object" &&
-                          di.quantity?.toNumber
+                        const quantity = di.converted_quantity
+                          ? typeof di.converted_quantity === "object" &&
+                            di.converted_quantity?.toNumber
+                            ? di.converted_quantity.toNumber()
+                            : Number(di.converted_quantity)
+                          : typeof di.quantity === "object" &&
+                              di.quantity?.toNumber
                             ? di.quantity.toNumber()
                             : Number(di.quantity);
                         const price =
