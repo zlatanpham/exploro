@@ -291,6 +291,8 @@ export default function MenuDetailPage() {
                 </TableHeader>
                 <TableBody>
                   {menu.MenuDish.map((menuDish) => {
+                    const servingMultiplier =
+                      menu.servings / menuDish.dish.servings;
                     const dishCost =
                       menuDish.dish.DishIngredient.reduce((sum, di) => {
                         const quantity = di.converted_quantity
@@ -308,7 +310,9 @@ export default function MenuDetailPage() {
                             ? di.ingredient.current_price.toNumber()
                             : Number(di.ingredient.current_price);
                         return sum + quantity * price;
-                      }, 0) * menuDish.quantity;
+                      }, 0) *
+                      menuDish.quantity *
+                      servingMultiplier;
 
                     return (
                       <TableRow key={menuDish.id}>
@@ -345,7 +349,14 @@ export default function MenuDetailPage() {
                             ? getMealGroupName(menuDish.meal_group)
                             : "-"}
                         </TableCell>
-                        <TableCell>x{menuDish.quantity}</TableCell>
+                        <TableCell>
+                          x
+                          {(menuDish.quantity * servingMultiplier) % 1 === 0
+                            ? menuDish.quantity * servingMultiplier
+                            : (menuDish.quantity * servingMultiplier).toFixed(
+                                1,
+                              )}
+                        </TableCell>
                         <TableCell className="text-right">
                           {formatPrice(dishCost)}
                         </TableCell>
