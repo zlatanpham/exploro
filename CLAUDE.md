@@ -117,3 +117,37 @@ Requires `.env` file with:
 - **Database Changes**: Modify `prisma/schema.prisma` and run `pnpm run db:generate`
 - **Protected Pages**: Add to `src/app/(protected)/` for authenticated access
 - **UI Components**: Use `pnpm run ui:add [component]` to add new shadcn/ui components
+
+### Accessibility Guidelines
+
+#### Vietnamese Text Search
+
+This application includes comprehensive Vietnamese diacritic-insensitive search functionality to improve accessibility for Vietnamese users. The search system automatically handles Vietnamese diacritics (accents) so that users can find content regardless of whether they type with or without accent marks.
+
+**Implementation:**
+
+- **Client-side**: Uses `normalizeVietnamese()` utility in `src/lib/utils.ts` for frontend filtering
+- **Server-side**: Uses `createVietnameseSearchConditions()` utility in `src/server/utils/vietnamese.ts` for database queries using systematic character-based approach
+
+**Coverage:**
+
+- Ingredient search (admin panel): `/admin/ingredients`
+- Dish search: `/dishes` and `/admin/dishes`
+- Menu dish search: Menu edit interface
+
+**Standard Practice:**
+
+- All new search functionality MUST implement Vietnamese diacritic-insensitive search
+- Use the existing utilities: `normalizeVietnamese()` for client-side and `createVietnameseSearchConditions()` for server-side
+- The server-side approach uses systematic character-based generation (no hardcoded word lists)
+- Test search functionality with both accented and non-accented Vietnamese text
+
+**Examples:**
+
+- Searching "bot" will find "Bột ngọt" (MSG)
+- Searching "thit kho tau" will find "Thịt kho tàu" (Braised pork with eggs)
+- Searching "pho bo" will find "Phở bò" (Beef pho)
+- Searching "ca chua" will find "Cà chua" (Tomato dishes)
+
+**Technical Details:**
+The implementation generates systematic character variations (e.g., "a" → "à", "á", "ạ", "ả") and word combinations to create comprehensive search terms without relying on hardcoded word mappings. This ensures the search scales to any Vietnamese content without manual maintenance.

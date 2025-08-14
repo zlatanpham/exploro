@@ -26,6 +26,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Trash2, Edit, Plus, Search } from "lucide-react";
+import { normalizeVietnamese } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -179,9 +180,11 @@ export default function IngredientsPage() {
   };
 
   const filteredIngredients = ingredients?.filter((ing) => {
+    const normalizedQuery = normalizeVietnamese(searchQuery);
     const matchesSearch =
-      ing.name_vi.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ing.name_en?.toLowerCase().includes(searchQuery.toLowerCase());
+      normalizeVietnamese(ing.name_vi).includes(normalizedQuery) ||
+      (ing.name_en &&
+        normalizeVietnamese(ing.name_en).includes(normalizedQuery));
     const matchesCategory =
       selectedCategory === "all" || ing.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -276,7 +279,9 @@ export default function IngredientsPage() {
                     )?.[language === "vi" ? "label_vi" : "label_en"] ??
                       ingredient.category}
                   </TableCell>
-                  <TableCell>{ingredient.unit?.symbol || ingredient.default_unit || '-'}</TableCell>
+                  <TableCell>
+                    {ingredient.unit?.symbol || ingredient.default_unit || "-"}
+                  </TableCell>
                   <TableCell>
                     {formatPrice(toSafeNumber(ingredient.current_price))}
                   </TableCell>
@@ -390,12 +395,14 @@ export default function IngredientsPage() {
                 <SelectContent>
                   {unitCategories?.map((category: any) => (
                     <div key={category.id}>
-                      <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                        {category.name.charAt(0).toUpperCase() + category.name.slice(1)}
+                      <div className="text-muted-foreground px-2 py-1.5 text-sm font-semibold">
+                        {category.name.charAt(0).toUpperCase() +
+                          category.name.slice(1)}
                       </div>
                       {category.units.map((unit: any) => (
                         <SelectItem key={unit.id} value={unit.id}>
-                          {unit.symbol} - {language === "vi" ? unit.name_vi : unit.name_en}
+                          {unit.symbol} -{" "}
+                          {language === "vi" ? unit.name_vi : unit.name_en}
                         </SelectItem>
                       ))}
                     </div>
@@ -404,32 +411,42 @@ export default function IngredientsPage() {
               </Select>
             </div>
             {/* Show density field for volume/mass units */}
-            {formData.unit_id && (() => {
-              const selectedUnit = unitCategories?.flatMap((c: any) => c.units).find((u: any) => u.id === formData.unit_id);
-              const unitCategory = unitCategories?.find((c: any) => c.id === selectedUnit?.category_id);
-              return unitCategory?.name === 'volume' || unitCategory?.name === 'mass';
-            })() && (
-              <div className="grid gap-2">
-                <Label htmlFor="density">
-                  {t("ingredient.density")} (g/ml)
-                  <span className="text-sm text-muted-foreground ml-2">
-                    {t("ingredient.densityHint")}
-                  </span>
-                </Label>
-                <Input
-                  id="density"
-                  type="number"
-                  step="0.001"
-                  value={formData.density || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      density: e.target.value ? parseFloat(e.target.value) : null,
-                    })
-                  }
-                />
-              </div>
-            )}
+            {formData.unit_id &&
+              (() => {
+                const selectedUnit = unitCategories
+                  ?.flatMap((c: any) => c.units)
+                  .find((u: any) => u.id === formData.unit_id);
+                const unitCategory = unitCategories?.find(
+                  (c: any) => c.id === selectedUnit?.category_id,
+                );
+                return (
+                  unitCategory?.name === "volume" ||
+                  unitCategory?.name === "mass"
+                );
+              })() && (
+                <div className="grid gap-2">
+                  <Label htmlFor="density">
+                    {t("ingredient.density")} (g/ml)
+                    <span className="text-muted-foreground ml-2 text-sm">
+                      {t("ingredient.densityHint")}
+                    </span>
+                  </Label>
+                  <Input
+                    id="density"
+                    type="number"
+                    step="0.001"
+                    value={formData.density || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        density: e.target.value
+                          ? parseFloat(e.target.value)
+                          : null,
+                      })
+                    }
+                  />
+                </div>
+              )}
             <div className="grid gap-2">
               <Label htmlFor="price">{t("ingredient.price")} (VND) *</Label>
               <Input

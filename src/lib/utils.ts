@@ -10,3 +10,12 @@ export function timeAgo(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return formatDistanceToNowStrict(d, { addSuffix: true });
 }
+
+export function normalizeVietnamese(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "d");
+}

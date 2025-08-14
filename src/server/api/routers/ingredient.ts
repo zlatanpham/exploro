@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
+import { normalizeVietnamese } from "@/server/utils/vietnamese";
 
 const ingredientInput = z.object({
   name_vi: z.string().min(1).max(255),
@@ -44,16 +45,25 @@ export const ingredientRouter = createTRPCRouter({
   search: protectedProcedure
     .input(z.object({ query: z.string() }))
     .query(async ({ ctx, input }) => {
-      return ctx.db.ingredient.findMany({
-        where: {
-          OR: [
-            { name_vi: { contains: input.query, mode: "insensitive" } },
-            { name_en: { contains: input.query, mode: "insensitive" } },
-          ],
-        },
-        take: 20,
+      // Get all ingredients and filter in memory using Vietnamese normalization
+      const allIngredients = await ctx.db.ingredient.findMany({
         orderBy: { name_vi: "asc" },
       });
+
+      const normalizedSearch = normalizeVietnamese(input.query);
+      const filteredIngredients = allIngredients.filter((ingredient) => {
+        const normalizedNameVi = normalizeVietnamese(ingredient.name_vi);
+        const normalizedNameEn = ingredient.name_en
+          ? normalizeVietnamese(ingredient.name_en)
+          : "";
+
+        return (
+          normalizedNameVi.includes(normalizedSearch) ||
+          normalizedNameEn.includes(normalizedSearch)
+        );
+      });
+
+      return filteredIngredients.slice(0, 20);
     }),
 
   // Create ingredient (admin only)
@@ -98,7 +108,7 @@ export const ingredientRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         data: ingredientInput.partial(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "admin") {
@@ -170,8 +180,8 @@ export const ingredientRouter = createTRPCRouter({
         z.object({
           id: z.string(),
           price: z.number().positive(),
-        })
-      )
+        }),
+      ),
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "admin") {
@@ -210,7 +220,7 @@ export const ingredientRouter = createTRPCRouter({
           }
 
           return { id, success: true };
-        })
+        }),
       );
 
       return results;

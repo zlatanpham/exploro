@@ -6,7 +6,13 @@ import { useLanguage } from "../_context/language";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -28,7 +34,7 @@ export default function DishesPage() {
   const [maxCookTime, setMaxCookTime] = useState<string>("all");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = 
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     api.dish.getAll.useInfiniteQuery(
       {
         search: searchQuery,
@@ -39,7 +45,7 @@ export default function DishesPage() {
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
+      },
     );
 
   const { data: tags } = api.tag.getAll.useQuery();
@@ -47,6 +53,10 @@ export default function DishesPage() {
   const { data: favorites } = api.dish.getFavorites.useQuery();
 
   const dishes = data?.pages.flatMap((page) => page.dishes) ?? [];
+  // Deduplicate dishes by id to handle search variations that match the same dish
+  const uniqueDishes = dishes.filter(
+    (dish, index, self) => index === self.findIndex((d) => d.id === dish.id),
+  );
   const favoriteIds = new Set(favorites?.map((f) => f.id) ?? []);
 
   const handleToggleFavorite = async (dishId: string) => {
@@ -57,23 +67,27 @@ export default function DishesPage() {
     if (minutes < 60) return `${minutes} ${t("time.minutes")}`;
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return mins > 0 
+    return mins > 0
       ? `${hours} ${t("time.hours")} ${mins} ${t("time.minutes")}`
       : `${hours} ${t("time.hours")}`;
   };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "easy": return "bg-green-100 text-green-800";
-      case "medium": return "bg-yellow-100 text-yellow-800";
-      case "hard": return "bg-red-100 text-red-800";
-      default: return "";
+      case "easy":
+        return "bg-green-100 text-green-800";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "hard":
+        return "bg-red-100 text-red-800";
+      default:
+        return "";
     }
   };
 
   return (
     <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">{t("nav.dishes")}</h1>
+      <h1 className="mb-6 text-3xl font-bold">{t("nav.dishes")}</h1>
 
       {/* Search and Filters */}
       <Card className="mb-6">
@@ -81,7 +95,7 @@ export default function DishesPage() {
           <div className="grid gap-4 md:grid-cols-4">
             <div className="md:col-span-2">
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
                 <Input
                   placeholder={t("action.search")}
                   value={searchQuery}
@@ -96,9 +110,15 @@ export default function DishesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t("message.all")}</SelectItem>
-                <SelectItem value="easy">{t("dish.difficulty.easy")}</SelectItem>
-                <SelectItem value="medium">{t("dish.difficulty.medium")}</SelectItem>
-                <SelectItem value="hard">{t("dish.difficulty.hard")}</SelectItem>
+                <SelectItem value="easy">
+                  {t("dish.difficulty.easy")}
+                </SelectItem>
+                <SelectItem value="medium">
+                  {t("dish.difficulty.medium")}
+                </SelectItem>
+                <SelectItem value="hard">
+                  {t("dish.difficulty.hard")}
+                </SelectItem>
               </SelectContent>
             </Select>
             <Select value={maxCookTime} onValueChange={setMaxCookTime}>
@@ -119,17 +139,21 @@ export default function DishesPage() {
                 {tags.map((tag) => (
                   <Badge
                     key={tag.id}
-                    variant={selectedTags.includes(tag.id) ? "default" : "outline"}
+                    variant={
+                      selectedTags.includes(tag.id) ? "default" : "outline"
+                    }
                     className="cursor-pointer"
                     onClick={() => {
                       setSelectedTags((prev) =>
                         prev.includes(tag.id)
                           ? prev.filter((id) => id !== tag.id)
-                          : [...prev, tag.id]
+                          : [...prev, tag.id],
                       );
                     }}
                   >
-                    {language === "vi" ? tag.name_vi : tag.name_en ?? tag.name_vi}
+                    {language === "vi"
+                      ? tag.name_vi
+                      : (tag.name_en ?? tag.name_vi)}
                   </Badge>
                 ))}
               </div>
@@ -140,28 +164,37 @@ export default function DishesPage() {
 
       {/* Dishes Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {dishes.map((dish) => (
-          <Card key={dish.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+        {uniqueDishes.map((dish) => (
+          <Card
+            key={dish.id}
+            className="overflow-hidden transition-shadow hover:shadow-lg"
+          >
             <Link href={`/dishes/${dish.id}`}>
-              <div className="aspect-video relative bg-gray-100">
+              <div className="relative aspect-video bg-gray-100">
                 {dish.image_url ? (
                   <Image
                     src={dish.image_url}
-                    alt={language === "vi" ? dish.name_vi : dish.name_en ?? dish.name_vi}
+                    alt={
+                      language === "vi"
+                        ? dish.name_vi
+                        : (dish.name_en ?? dish.name_vi)
+                    }
                     fill
                     className="object-cover"
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full">
+                  <div className="flex h-full items-center justify-center">
                     <span className="text-gray-400">No image</span>
                   </div>
                 )}
               </div>
             </Link>
             <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-lg line-clamp-2">
-                  {language === "vi" ? dish.name_vi : dish.name_en ?? dish.name_vi}
+              <div className="flex items-start justify-between">
+                <CardTitle className="line-clamp-2 text-lg">
+                  {language === "vi"
+                    ? dish.name_vi
+                    : (dish.name_en ?? dish.name_vi)}
                 </CardTitle>
                 {session && (
                   <Button
@@ -174,25 +207,31 @@ export default function DishesPage() {
                   >
                     <Heart
                       className={`h-4 w-4 ${
-                        favoriteIds.has(dish.id) ? "fill-red-500 text-red-500" : ""
+                        favoriteIds.has(dish.id)
+                          ? "fill-red-500 text-red-500"
+                          : ""
                       }`}
                     />
                   </Button>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {language === "vi" ? dish.description_vi : dish.description_en ?? dish.description_vi}
+              <p className="text-muted-foreground line-clamp-2 text-sm">
+                {language === "vi"
+                  ? dish.description_vi
+                  : (dish.description_en ?? dish.description_vi)}
               </p>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <Clock className="text-muted-foreground h-4 w-4" />
                   <span>{formatCookTime(dish.cook_time)}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>{dish.servings} {t("time.people")}</span>
+                  <Users className="text-muted-foreground h-4 w-4" />
+                  <span>
+                    {dish.servings} {t("time.people")}
+                  </span>
                 </div>
               </div>
               <div className="mt-2 flex items-center gap-2">
@@ -200,7 +239,7 @@ export default function DishesPage() {
                   {t(`dish.difficulty.${dish.difficulty}`)}
                 </Badge>
                 {dish._count.FavoriteDish > 0 && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-muted-foreground text-xs">
                     {dish._count.FavoriteDish} ❤️
                   </span>
                 )}
@@ -209,8 +248,14 @@ export default function DishesPage() {
             <CardFooter className="pt-0">
               <div className="flex flex-wrap gap-1">
                 {dish.DishTag.slice(0, 3).map((dishTag) => (
-                  <Badge key={dishTag.tag.id} variant="secondary" className="text-xs">
-                    {language === "vi" ? dishTag.tag.name_vi : dishTag.tag.name_en ?? dishTag.tag.name_vi}
+                  <Badge
+                    key={dishTag.tag.id}
+                    variant="secondary"
+                    className="text-xs"
+                  >
+                    {language === "vi"
+                      ? dishTag.tag.name_vi
+                      : (dishTag.tag.name_en ?? dishTag.tag.name_vi)}
                   </Badge>
                 ))}
                 {dish.DishTag.length > 3 && (
@@ -239,13 +284,13 @@ export default function DishesPage() {
 
       {/* Loading Skeleton */}
       {isFetchingNextPage && (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-6">
+        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i} className="overflow-hidden">
               <Skeleton className="aspect-video" />
               <CardHeader>
                 <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-full mt-2" />
+                <Skeleton className="mt-2 h-4 w-full" />
               </CardHeader>
               <CardContent>
                 <Skeleton className="h-4 w-1/2" />
@@ -256,8 +301,8 @@ export default function DishesPage() {
       )}
 
       {/* No Results */}
-      {dishes.length === 0 && !isFetchingNextPage && (
-        <div className="text-center py-12">
+      {uniqueDishes.length === 0 && !isFetchingNextPage && (
+        <div className="py-12 text-center">
           <p className="text-muted-foreground">{t("message.noData")}</p>
         </div>
       )}
