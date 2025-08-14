@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/trpc/react";
 import { useLanguage } from "../../_context/language";
 import { Button } from "@/components/ui/button";
@@ -52,10 +52,21 @@ const MEAL_GROUPS = ["breakfast", "lunch", "dinner", "snack"];
 export default function MenuDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t, language } = useLanguage();
 
   const menuId = params.id as string;
   const { data: menu, isLoading } = api.menu.getById.useQuery({ id: menuId });
+
+  // Get active tab from URL search params
+  const activeTab = searchParams.get("tab") ?? "weekly";
+
+  // Handle tab change by updating URL search params
+  const handleTabChange = (value: string) => {
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set("tab", value);
+    router.push(`?${newSearchParams.toString()}`, { scroll: false });
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -201,7 +212,11 @@ export default function MenuDetailPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="weekly" className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full"
+      >
         <TabsList>
           <TabsTrigger value="weekly">{t("menu.weeklyView")}</TabsTrigger>
           <TabsTrigger value="list">{t("menu.listView")}</TabsTrigger>
