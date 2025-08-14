@@ -387,6 +387,7 @@ export default function MenuDetailPage() {
                   <TableRow>
                     <TableHead>{t("ingredient.name")}</TableHead>
                     <TableHead>{t("ingredient.quantity")}</TableHead>
+                    <TableHead>{t("ingredient.unit")}</TableHead>
                     <TableHead>{t("ingredient.price")}</TableHead>
                     <TableHead className="text-right">
                       {t("dish.totalCost")}
@@ -410,8 +411,9 @@ export default function MenuDetailPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {item.totalQuantity} {item.unit}
+                        {Number(item.totalQuantity.toFixed(2))}
                       </TableCell>
+                      <TableCell>{item.unit}</TableCell>
                       <TableCell>
                         {formatPrice(
                           typeof item.ingredient.current_price === "object" &&
@@ -419,7 +421,10 @@ export default function MenuDetailPage() {
                             ? item.ingredient.current_price.toNumber()
                             : Number(item.ingredient.current_price),
                         )}
-                        /{item.ingredient.default_unit}
+                        /
+                        {item.ingredient.unit?.symbol ||
+                          item.ingredient.default_unit ||
+                          ""}
                       </TableCell>
                       <TableCell className="text-right">
                         {formatPrice(

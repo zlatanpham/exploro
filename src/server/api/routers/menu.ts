@@ -133,7 +133,11 @@ export const menuRouter = createTRPCRouter({
                 include: {
                   DishIngredient: {
                     include: {
-                      ingredient: true,
+                      ingredient: {
+                        include: {
+                          unit: true,
+                        },
+                      },
                       unit_ref: true,
                     },
                   },
