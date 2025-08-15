@@ -4,7 +4,14 @@ import { useState } from "react";
 import { api } from "@/trpc/react";
 import { useLanguage } from "../_context/language";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Calendar, Users, Eye, EyeOff, Trash2 } from "lucide-react";
@@ -39,14 +46,14 @@ export default function MenusPage() {
     visibility: "private",
   });
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = 
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
     api.menu.getUserMenus.useInfiniteQuery(
       {
         limit: 12,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
+      },
     );
 
   const createMenu = api.menu.create.useMutation({
@@ -103,15 +110,16 @@ export default function MenusPage() {
 
   const formatDateRange = (start?: Date | null, end?: Date | null) => {
     if (!start && !end) return t("menu.noDateSet");
-    const format = (date: Date) => date.toLocaleDateString(language === "vi" ? "vi-VN" : "en-US");
+    const format = (date: Date) =>
+      date.toLocaleDateString(language === "vi" ? "vi-VN" : "en-US");
     if (start && end) return `${format(start)} - ${format(end)}`;
     if (start) return `From ${format(start)}`;
     if (end) return `Until ${format(end)}`;
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto pt-4 pb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">{t("nav.menus")}</h1>
         <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -124,15 +132,13 @@ export default function MenusPage() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold mb-1">{t("menu.browsePublic")}</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="mb-1 font-semibold">{t("menu.browsePublic")}</h3>
+              <p className="text-muted-foreground text-sm">
                 {t("menu.browsePublicDescription")}
               </p>
             </div>
             <Link href="/menus/public">
-              <Button variant="outline">
-                {t("action.browse")}
-              </Button>
+              <Button variant="outline">{t("action.browse")}</Button>
             </Link>
           </div>
         </CardContent>
@@ -143,17 +149,27 @@ export default function MenusPage() {
         {menus.map((menu) => (
           <Card key={menu.id} className="overflow-hidden">
             <CardHeader>
-              <div className="flex justify-between items-start">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-lg line-clamp-1">{menu.name}</CardTitle>
+                  <CardTitle className="line-clamp-1 text-lg">
+                    {menu.name}
+                  </CardTitle>
                   {menu.description && (
-                    <CardDescription className="line-clamp-2 mt-1">
+                    <CardDescription className="mt-1 line-clamp-2">
                       {menu.description}
                     </CardDescription>
                   )}
                 </div>
-                <Badge variant={menu.visibility === "public" ? "default" : "secondary"}>
-                  {menu.visibility === "public" ? <Eye className="h-3 w-3 mr-1" /> : <EyeOff className="h-3 w-3 mr-1" />}
+                <Badge
+                  variant={
+                    menu.visibility === "public" ? "default" : "secondary"
+                  }
+                >
+                  {menu.visibility === "public" ? (
+                    <Eye className="mr-1 h-3 w-3" />
+                  ) : (
+                    <EyeOff className="mr-1 h-3 w-3" />
+                  )}
                   {t(`menu.visibility.${menu.visibility}`)}
                 </Badge>
               </div>
@@ -161,15 +177,19 @@ export default function MenusPage() {
             <CardContent>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Calendar className="text-muted-foreground h-4 w-4" />
                   <span>{formatDateRange(menu.start_date, menu.end_date)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>{menu.servings} {t("time.people")}</span>
+                  <Users className="text-muted-foreground h-4 w-4" />
+                  <span>
+                    {menu.servings} {t("time.people")}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">{menu._count.MenuDish} {t("menu.dishes")}</span>
+                  <span className="text-muted-foreground">
+                    {menu._count.MenuDish} {t("menu.dishes")}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -211,12 +231,12 @@ export default function MenusPage() {
 
       {/* Loading Skeleton */}
       {isFetchingNextPage && (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6">
+        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(3)].map((_, i) => (
             <Card key={i} className="overflow-hidden">
               <CardHeader>
                 <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-full mt-2" />
+                <Skeleton className="mt-2 h-4 w-full" />
               </CardHeader>
               <CardContent>
                 <Skeleton className="h-20" />
@@ -231,7 +251,7 @@ export default function MenusPage() {
 
       {/* No Results */}
       {menus.length === 0 && !isFetchingNextPage && (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <p className="text-muted-foreground mb-4">{t("menu.noMenus")}</p>
           <Button onClick={() => setIsCreateOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
@@ -244,10 +264,10 @@ export default function MenusPage() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("action.create")} {t("menu.name")}</DialogTitle>
-            <DialogDescription>
-              {t("menu.createDescription")}
-            </DialogDescription>
+            <DialogTitle>
+              {t("action.create")} {t("menu.name")}
+            </DialogTitle>
+            <DialogDescription>{t("menu.createDescription")}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -255,7 +275,9 @@ export default function MenusPage() {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder={t("menu.namePlaceholder")}
               />
             </div>
@@ -264,7 +286,9 @@ export default function MenusPage() {
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder={t("menu.descriptionPlaceholder")}
               />
             </div>
@@ -275,30 +299,44 @@ export default function MenusPage() {
                 type="number"
                 min="1"
                 value={formData.servings}
-                onChange={(e) => setFormData({ ...formData, servings: parseInt(e.target.value) ?? 1 })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    servings: parseInt(e.target.value) ?? 1,
+                  })
+                }
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="visibility">{t("menu.visibility")}</Label>
               <Select
                 value={formData.visibility}
-                onValueChange={(value) => setFormData({ ...formData, visibility: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, visibility: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="private">{t("menu.visibility.private")}</SelectItem>
-                  <SelectItem value="public">{t("menu.visibility.public")}</SelectItem>
+                  <SelectItem value="private">
+                    {t("menu.visibility.private")}
+                  </SelectItem>
+                  <SelectItem value="public">
+                    {t("menu.visibility.public")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsCreateOpen(false);
-              resetForm();
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateOpen(false);
+                resetForm();
+              }}
+            >
               {t("action.cancel")}
             </Button>
             <Button

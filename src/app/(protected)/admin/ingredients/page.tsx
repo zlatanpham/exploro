@@ -192,7 +192,7 @@ export default function IngredientsPage() {
 
   // Show loading state while checking authentication
   if (status === "loading") {
-    return <div className="container mx-auto py-6">Loading...</div>;
+    return <div className="container mx-auto pt-4 pb-6">Loading...</div>;
   }
 
   // Don't render if not admin
@@ -201,7 +201,7 @@ export default function IngredientsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto pt-4 pb-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">{t("nav.ingredients")}</h1>
         <Button onClick={() => setIsCreateOpen(true)}>

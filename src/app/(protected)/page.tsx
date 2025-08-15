@@ -17,22 +17,27 @@ import { api } from "@/trpc/react";
 export default function DashboardPage() {
   const { data: session } = useSession();
   const { t, language } = useLanguage();
-  
+
   // Fetch some stats
   const { data: recentMenus } = api.menu.getUserMenus.useQuery({ limit: 3 });
   const { data: favorites } = api.dish.getFavorites.useQuery();
   const { data: publicDishes } = api.dish.getAll.useQuery({ limit: 6 });
 
-  const user = session?.user as { name?: string; email?: string; role?: string };
+  const user = session?.user as {
+    name?: string;
+    email?: string;
+    role?: string;
+  };
 
   return (
-    <div className="container mx-auto space-y-6 p-6">
+    <div className="container mx-auto space-y-6 px-6 pt-4 pb-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">
-          {language === "vi" ? "Xin chào" : "Welcome"}{user?.name ? `, ${user.name}` : ""}!
+          {language === "vi" ? "Xin chào" : "Welcome"}
+          {user?.name ? `, ${user.name}` : ""}!
         </h1>
         <p className="text-muted-foreground">
-          {language === "vi" 
+          {language === "vi"
             ? "Hãy bắt đầu lập kế hoạch bữa ăn cho gia đình bạn"
             : "Start planning meals for your family"}
         </p>
@@ -41,16 +46,18 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-4">
         <Link href="/dishes">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="cursor-pointer transition-shadow hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {t("nav.dishes")}
               </CardTitle>
-              <ChefHat className="h-4 w-4 text-muted-foreground" />
+              <ChefHat className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{publicDishes?.dishes.length ?? 0}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold">
+                {publicDishes?.dishes.length ?? 0}
+              </div>
+              <p className="text-muted-foreground text-xs">
                 {language === "vi" ? "Món ăn có sẵn" : "Available dishes"}
               </p>
             </CardContent>
@@ -58,16 +65,18 @@ export default function DashboardPage() {
         </Link>
 
         <Link href="/menus">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="cursor-pointer transition-shadow hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {t("nav.menus")}
               </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{recentMenus?.menus.length ?? 0}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold">
+                {recentMenus?.menus.length ?? 0}
+              </div>
+              <p className="text-muted-foreground text-xs">
                 {language === "vi" ? "Thực đơn của bạn" : "Your menus"}
               </p>
             </CardContent>
@@ -75,16 +84,16 @@ export default function DashboardPage() {
         </Link>
 
         <Link href="/favorites">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card className="cursor-pointer transition-shadow hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {t("nav.favorites")}
               </CardTitle>
-              <Heart className="h-4 w-4 text-muted-foreground" />
+              <Heart className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{favorites?.length ?? 0}</div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 {language === "vi" ? "Món yêu thích" : "Favorite dishes"}
               </p>
             </CardContent>
@@ -92,7 +101,7 @@ export default function DashboardPage() {
         </Link>
 
         <Link href="/menus?create=true">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-primary text-primary-foreground">
+          <Card className="bg-primary text-primary-foreground cursor-pointer transition-shadow hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {language === "vi" ? "Tạo thực đơn" : "Create Menu"}
@@ -101,7 +110,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <p className="text-xs">
-                {language === "vi" 
+                {language === "vi"
                   ? "Bắt đầu lập kế hoạch bữa ăn mới"
                   : "Start planning a new meal"}
               </p>
@@ -114,7 +123,9 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{language === "vi" ? "Thực đơn gần đây" : "Recent Menus"}</CardTitle>
+            <CardTitle>
+              {language === "vi" ? "Thực đơn gần đây" : "Recent Menus"}
+            </CardTitle>
             <Link href="/menus">
               <Button variant="ghost" size="sm">
                 {language === "vi" ? "Xem tất cả" : "View all"}
@@ -126,13 +137,20 @@ export default function DashboardPage() {
           {recentMenus && recentMenus.menus.length > 0 ? (
             <div className="space-y-4">
               {recentMenus.menus.map((menu) => (
-                <div key={menu.id} className="flex items-center justify-between">
+                <div
+                  key={menu.id}
+                  className="flex items-center justify-between"
+                >
                   <div>
-                    <Link href={`/menus/${menu.id}`} className="font-medium hover:underline">
+                    <Link
+                      href={`/menus/${menu.id}`}
+                      className="font-medium hover:underline"
+                    >
                       {menu.name}
                     </Link>
-                    <p className="text-sm text-muted-foreground">
-                      {menu._count.MenuDish} {t("menu.dishes")} • {menu.servings} {t("time.people")}
+                    <p className="text-muted-foreground text-sm">
+                      {menu._count.MenuDish} {t("menu.dishes")} •{" "}
+                      {menu.servings} {t("time.people")}
                     </p>
                   </div>
                   <Link href={`/menus/${menu.id}/edit`}>
@@ -145,7 +163,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <p className="text-muted-foreground">
-              {language === "vi" 
+              {language === "vi"
                 ? "Bạn chưa có thực đơn nào. Hãy tạo thực đơn đầu tiên!"
                 : "You don't have any menus yet. Create your first menu!"}
             </p>
@@ -171,7 +189,9 @@ export default function DashboardPage() {
               </Link>
               <Link href="/admin/ingredients">
                 <Button variant="outline" className="w-full">
-                  {language === "vi" ? "Quản lý nguyên liệu" : "Manage Ingredients"}
+                  {language === "vi"
+                    ? "Quản lý nguyên liệu"
+                    : "Manage Ingredients"}
                 </Button>
               </Link>
               <Link href="/admin/tags">

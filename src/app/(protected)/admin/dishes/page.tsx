@@ -68,7 +68,9 @@ export default function AdminDishesPage() {
 
   // Show loading state while checking authentication
   if (status === "loading") {
-    return <div className="container mx-auto py-6">{t("message.loading")}</div>;
+    return (
+      <div className="container mx-auto pt-4 pb-6">{t("message.loading")}</div>
+    );
   }
 
   // Don't render if not admin
@@ -105,7 +107,7 @@ export default function AdminDishesPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto pt-4 pb-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">
           {t("nav.admin")} - {t("nav.dishes")}

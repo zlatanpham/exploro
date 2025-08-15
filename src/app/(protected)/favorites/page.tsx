@@ -79,7 +79,7 @@ export default function FavoritesPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto pt-4 pb-6">
       <h1 className="mb-6 text-3xl font-bold">{t("nav.favorites")}</h1>
 
       {favorites && favorites.length > 0 ? (

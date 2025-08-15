@@ -40,7 +40,11 @@ const TAG_CATEGORIES = [
   { value: "dietary", label_vi: "Chế độ ăn", label_en: "Dietary" },
   { value: "season", label_vi: "Mùa", label_en: "Season" },
   { value: "occasion", label_vi: "Dịp lễ", label_en: "Occasion" },
-  { value: "cooking_method", label_vi: "Phương pháp nấu", label_en: "Cooking Method" },
+  {
+    value: "cooking_method",
+    label_vi: "Phương pháp nấu",
+    label_en: "Cooking Method",
+  },
   { value: "other", label_vi: "Khác", label_en: "Other" },
 ];
 
@@ -133,18 +137,21 @@ export default function TagsPage() {
   };
 
   // Group tags by category
-  const groupedTags = tags?.reduce((acc, tag) => {
-    const category = tag.category ?? "other";
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(tag);
-    return acc;
-  }, {} as Record<string, typeof tags>);
+  const groupedTags = tags?.reduce(
+    (acc, tag) => {
+      const category = tag.category ?? "other";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(tag);
+      return acc;
+    },
+    {} as Record<string, typeof tags>,
+  );
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto pt-4 pb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">{t("nav.tags")}</h1>
         <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -156,8 +163,9 @@ export default function TagsPage() {
         <Card key={category} className="mb-6">
           <CardHeader>
             <CardTitle>
-              {TAG_CATEGORIES.find((c) => c.value === category)
-                ?.[language === "vi" ? "label_vi" : "label_en"] ?? category}
+              {TAG_CATEGORIES.find((c) => c.value === category)?.[
+                language === "vi" ? "label_vi" : "label_en"
+              ] ?? category}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -166,7 +174,9 @@ export default function TagsPage() {
                 <TableRow>
                   <TableHead>{t("tag.name")} (Tiếng Việt)</TableHead>
                   <TableHead>{t("tag.name")} (English)</TableHead>
-                  <TableHead className="text-right">{t("action.actions")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("action.actions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -221,7 +231,9 @@ export default function TagsPage() {
               <Input
                 id="name_vi"
                 value={formData.name_vi}
-                onChange={(e) => setFormData({ ...formData, name_vi: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name_vi: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
@@ -229,14 +241,18 @@ export default function TagsPage() {
               <Input
                 id="name_en"
                 value={formData.name_en}
-                onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name_en: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="category">Category</Label>
               <Select
                 value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, category: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
@@ -252,11 +268,14 @@ export default function TagsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsCreateOpen(false);
-              setEditingTag(null);
-              resetForm();
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateOpen(false);
+                setEditingTag(null);
+                resetForm();
+              }}
+            >
               {t("action.cancel")}
             </Button>
             <Button

@@ -128,7 +128,7 @@ export default function DishDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto pt-4 pb-6">
         <Skeleton className="mb-6 h-8 w-32" />
         <div className="grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2">
@@ -146,14 +146,14 @@ export default function DishDetailPage() {
 
   if (!dish) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto pt-4 pb-6">
         <p>{t("message.noData")}</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto pt-4 pb-6">
       <Button variant="ghost" onClick={() => router.back()} className="mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" />
         {t("action.back")}
