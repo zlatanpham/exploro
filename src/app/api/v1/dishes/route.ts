@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
   withApiAuth,
   getQueryParams,
@@ -11,7 +11,7 @@ import { z } from "zod";
 
 // GET /api/v1/dishes - List dishes
 export const GET = withApiAuth(
-  async (request, context) => {
+  async (request, _context) => {
     const searchParams = getQueryParams(request);
     const { limit, offset } = getPaginationParams(searchParams);
 
@@ -124,12 +124,14 @@ export const GET = withApiAuth(
               name_en: di.ingredient.name_en,
               quantity: di.quantity.toNumber(),
               unit_id: di.unit_id,
-              unit: di.unit_ref ? {
-                id: di.unit_ref.id,
-                symbol: di.unit_ref.symbol,
-                name_vi: di.unit_ref.name_vi,
-                name_en: di.unit_ref.name_en,
-              } : null,
+              unit: di.unit_ref
+                ? {
+                    id: di.unit_ref.id,
+                    symbol: di.unit_ref.symbol,
+                    name_vi: di.unit_ref.name_vi,
+                    name_en: di.unit_ref.name_en,
+                  }
+                : null,
               optional: di.optional,
               notes: di.notes,
             })),
@@ -179,7 +181,7 @@ const createDishSchema = z.object({
 
 // POST /api/v1/dishes - Create dish
 export const POST = withApiAuth(
-  async (request, context) => {
+  async (request, _context) => {
     const body = await parseJsonBody(request, (data) =>
       createDishSchema.parse(data),
     );
@@ -226,7 +228,7 @@ export const POST = withApiAuth(
       data: {
         ...dishData,
         DishIngredient: {
-          create: ingredients.map(ing => ({
+          create: ingredients.map((ing) => ({
             ingredient_id: ing.ingredient_id,
             quantity: ing.quantity,
             unit_id: ing.unit_id!,
@@ -288,12 +290,14 @@ export const POST = withApiAuth(
             name_en: di.ingredient.name_en,
             quantity: di.quantity.toNumber(),
             unit_id: di.unit_id,
-            unit: di.unit_ref ? {
-              id: di.unit_ref.id,
-              symbol: di.unit_ref.symbol,
-              name_vi: di.unit_ref.name_vi,
-              name_en: di.unit_ref.name_en,
-            } : null,
+            unit: di.unit_ref
+              ? {
+                  id: di.unit_ref.id,
+                  symbol: di.unit_ref.symbol,
+                  name_vi: di.unit_ref.name_vi,
+                  name_en: di.unit_ref.name_en,
+                }
+              : null,
             optional: di.optional,
             notes: di.notes,
           })),

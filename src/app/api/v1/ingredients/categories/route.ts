@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withApiAuth } from "@/lib/api/middleware";
 import { db } from "@/server/db";
 
 // GET /api/v1/ingredients/categories - List all ingredient categories from database
 export const GET = withApiAuth(
-  async (request, _context) => {
+  async (_request, _context) => {
     const categories = await db.ingredientCategory.findMany({
       orderBy: { value: "asc" },
       select: {

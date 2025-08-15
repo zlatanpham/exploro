@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
   withApiAuth,
   getQueryParams,
@@ -11,7 +11,7 @@ import { z } from "zod";
 
 // GET /api/v1/menus - List menus
 export const GET = withApiAuth(
-  async (request, context) => {
+  async (request, _context) => {
     const searchParams = getQueryParams(request);
     const { limit, offset } = getPaginationParams(searchParams);
 
@@ -133,7 +133,7 @@ const createMenuSchema = z.object({
 
 // POST /api/v1/menus - Create menu
 export const POST = withApiAuth(
-  async (request, context) => {
+  async (request, _context) => {
     const body = await parseJsonBody(request, (data) =>
       createMenuSchema.parse(data),
     );

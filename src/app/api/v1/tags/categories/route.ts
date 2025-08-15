@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withApiAuth } from "@/lib/api/middleware";
 
 // Define tag categories with translations
@@ -117,7 +117,7 @@ const tagCategories = [
 
 // GET /api/v1/tags/categories - List all tag categories
 export const GET = withApiAuth(
-  async (request, context) => {
+  async (_request, _context) => {
     return NextResponse.json({
       categories: tagCategories,
       total: tagCategories.length,

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withApiAuth } from "@/lib/api/middleware";
 
 // Define dish-related categories
@@ -69,7 +69,7 @@ const dishCategories = {
 
 // GET /api/v1/dishes/categories - List all dish categories
 export const GET = withApiAuth(
-  async (request, context) => {
+  async (request, _context) => {
     const searchParams = new URL(request.url).searchParams;
     const type = searchParams.get("type");
 

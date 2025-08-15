@@ -1,16 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
   withApiAuth,
   getQueryParams,
   parseJsonBody,
 } from "@/lib/api/middleware";
-import { ApiError } from "@/lib/api/errors";
 import { db } from "@/server/db";
 import { z } from "zod";
 
 // GET /api/v1/tags - List tags
 export const GET = withApiAuth(
-  async (request, context) => {
+  async (request, _context) => {
     const searchParams = getQueryParams(request);
     const category = searchParams.get("category");
 
@@ -57,7 +56,7 @@ const createTagSchema = z.object({
 
 // POST /api/v1/tags - Create tag
 export const POST = withApiAuth(
-  async (request, context) => {
+  async (request, _context) => {
     const body = await parseJsonBody(request, (data) =>
       createTagSchema.parse(data),
     );

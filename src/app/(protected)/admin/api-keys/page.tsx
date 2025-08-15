@@ -65,7 +65,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { getEndpoints, type Endpoint, type Parameter } from "./api-endpoints";
+import { getEndpoints } from "./api-endpoints";
 
 interface ApiKeyFormData {
   name: string;
@@ -140,27 +140,27 @@ function CodeBlock({ code }: { code: string; language?: string }) {
   );
 }
 
-function MethodBadge({ method }: { method: string }) {
-  const colors = {
-    GET: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    POST: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    PUT: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-    DELETE: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    PATCH:
-      "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-  };
+// function MethodBadge({ method }: { method: string }) {
+//   const colors = {
+//     GET: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+//     POST: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+//     PUT: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+//     DELETE: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+//     PATCH:
+//       "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+//   };
 
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium",
-        colors[method as keyof typeof colors],
-      )}
-    >
-      {method}
-    </span>
-  );
-}
+//   return (
+//     <span
+//       className={cn(
+//         "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium",
+//         colors[method as keyof typeof colors],
+//       )}
+//     >
+//       {method}
+//     </span>
+//   );
+// }
 
 export default function ApiKeysPage() {
   const router = useRouter();
@@ -197,7 +197,7 @@ export default function ApiKeysPage() {
       setIsCreateOpen(false);
       await refetch();
       toast.success("API key created successfully");
-    } catch (_error) {
+    } catch {
       toast.error("Failed to create API key");
     }
   };
@@ -215,7 +215,7 @@ export default function ApiKeysPage() {
       setRevokeReason("");
       await refetch();
       toast.success("API key revoked successfully");
-    } catch (_error) {
+    } catch {
       toast.error("Failed to revoke API key");
     }
   };

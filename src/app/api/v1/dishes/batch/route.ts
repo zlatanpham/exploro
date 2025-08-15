@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withApiAuth, parseJsonBody } from "@/lib/api/middleware";
 import { ApiError } from "@/lib/api/errors";
 import { db } from "@/server/db";
@@ -42,7 +42,7 @@ const batchCreateDishesSchema = z.object({
 
 // POST /api/v1/dishes/batch - Batch create dishes
 export const POST = withApiAuth(
-  async (request, context) => {
+  async (request, _context) => {
     const body = await parseJsonBody(request, (data) =>
       batchCreateDishesSchema.parse(data),
     );
@@ -109,7 +109,7 @@ export const POST = withApiAuth(
           data: {
             ...dishInfo,
             DishIngredient: {
-              create: ingredients.map(ing => ({
+              create: ingredients.map((ing) => ({
                 ingredient_id: ing.ingredient_id,
                 quantity: ing.quantity,
                 unit_id: ing.unit_id!,
@@ -140,7 +140,7 @@ export const POST = withApiAuth(
         });
 
         // Calculate total cost
-        // Calculate total cost - temporarily disabled due to type issues  
+        // Calculate total cost - temporarily disabled due to type issues
         const totalCost = 0;
 
         results.push({

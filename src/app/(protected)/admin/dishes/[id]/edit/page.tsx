@@ -332,14 +332,14 @@ export default function EditDishPage({
       // Map selected tags
       setSelectedTags(dish.DishTag.map((dt) => dt.tag_id));
     }
-  }, [dish]);
+  }, [dish, t]);
 
   // Check if user is admin
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role !== "admin") {
       router.push("/");
     }
-  }, [session, status, router, t]);
+  }, [session, status, router]);
 
   // Show loading state while checking authentication
   if (status === "loading" || dishLoading) {

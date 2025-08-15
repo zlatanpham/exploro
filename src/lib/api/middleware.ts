@@ -73,7 +73,7 @@ export function withApiAuth<T = unknown>(
       });
 
       return response;
-    } catch (error) {
+    } catch {
       const responseTime = Date.now() - startTime;
 
       // Log failed request if we have an API key
@@ -105,7 +105,7 @@ export async function parseJsonBody<T>(
     }
 
     return body as T;
-  } catch (error) {
+  } catch {
     throw new ApiError("VALIDATION_ERROR", {
       message: "Invalid JSON in request body",
     });

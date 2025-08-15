@@ -1,17 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
   withApiAuth,
   getQueryParams,
   getPaginationParams,
   parseJsonBody,
 } from "@/lib/api/middleware";
-import { ApiError } from "@/lib/api/errors";
 import { db } from "@/server/db";
 import { z } from "zod";
 
 // GET /api/v1/ingredients - List ingredients
 export const GET = withApiAuth(
-  async (request, context) => {
+  async (request, _context) => {
     const searchParams = getQueryParams(request);
     const { limit, offset } = getPaginationParams(searchParams);
 
@@ -85,7 +84,7 @@ const createIngredientSchema = z.object({
     name_en: z.string().max(255).optional(),
     category: z.string().min(1, "Category is required").max(100).optional(), // legacy support
     category_id: z.string().optional(), // new foreign key approach
-    default_unit: z.string().max(50).optional(), // legacy support  
+    default_unit: z.string().max(50).optional(), // legacy support
     unit_id: z.string().min(1, "Unit ID is required"), // new foreign key approach
     current_price: z.number().positive("Price must be positive"),
     density: z.number().positive().optional(), // for mass-volume conversions
@@ -95,7 +94,7 @@ const createIngredientSchema = z.object({
 
 // POST /api/v1/ingredients - Create ingredient
 export const POST = withApiAuth(
-  async (request, context) => {
+  async (request, _context) => {
     const body = await parseJsonBody(request, (data) =>
       createIngredientSchema.parse(data),
     );

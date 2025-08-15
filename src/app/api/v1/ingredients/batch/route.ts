@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withApiAuth, parseJsonBody } from "@/lib/api/middleware";
 import { ApiError } from "@/lib/api/errors";
 import { db } from "@/server/db";
@@ -26,7 +26,7 @@ const batchCreateIngredientsSchema = z.object({
 
 // POST /api/v1/ingredients/batch - Batch create ingredients
 export const POST = withApiAuth(
-  async (request, context) => {
+  async (request, _context) => {
     const body = await parseJsonBody(request, (data) =>
       batchCreateIngredientsSchema.parse(data),
     );
@@ -135,7 +135,7 @@ export const POST = withApiAuth(
             });
           }
         });
-      } catch (error) {
+      } catch {
         // If transaction fails, mark all remaining as errors
         for (const ingredientData of toCreate) {
           if (

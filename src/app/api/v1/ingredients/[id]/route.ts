@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withApiAuth, parseJsonBody } from "@/lib/api/middleware";
 import { ApiError } from "@/lib/api/errors";
 import { db } from "@/server/db";
