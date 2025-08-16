@@ -28,6 +28,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm run format:check` - Check code formatting with Prettier
 - `pnpm run format:write` - Format code with Prettier
 
+### Testing
+
+- `pnpm run test` - Run tests in watch mode (development)
+- `pnpm run test:ui` - Run tests with interactive UI
+- `pnpm run test:run` - Run all tests once (CI/CD)
+- `pnpm run test:watch` - Run tests in watch mode
+- `pnpm run test:coverage` - Generate coverage report
+- `pnpm run test:coverage:ui` - Generate coverage with UI
+
 ### UI Components
 
 - `pnpm run ui:add` - Add new shadcn/ui components
@@ -44,6 +53,7 @@ This is **Next Starter** - a full-stack Next.js 15 boilerplate with authenticati
 - **Backend**: tRPC for type-safe APIs, NextAuth.js for authentication
 - **Database**: PostgreSQL with Prisma ORM
 - **Email**: Resend integration for password reset functionality
+- **Testing**: Vitest, React Testing Library, MSW for API mocking
 
 ### Database Schema
 
@@ -152,6 +162,60 @@ This application includes comprehensive Vietnamese diacritic-insensitive search 
 
 **Technical Details:**
 The implementation generates systematic character variations (e.g., "a" → "à", "á", "ạ", "ả") and word combinations to create comprehensive search terms without relying on hardcoded word mappings. This ensures the search scales to any Vietnamese content without manual maintenance.
+
+### Test-Driven Development (TDD)
+
+This project follows TDD practices for all new features and bug fixes. The testing framework includes:
+
+#### Testing Stack
+
+- **Vitest**: Fast test runner with TypeScript support
+- **React Testing Library**: Component testing with user-centric approach
+- **MSW (Mock Service Worker)**: API mocking for integration tests
+- **Jest-DOM**: Extended DOM matchers for better assertions
+
+#### TDD Workflow
+
+1. **Red**: Write a failing test that describes the desired behavior
+2. **Green**: Write the minimal code needed to make the test pass
+3. **Refactor**: Improve the code while keeping tests green
+
+#### Testing Categories
+
+- **Unit Tests**: Test utility functions and pure logic (100% coverage goal)
+- **Component Tests**: Test React components with user interactions (90%+ coverage goal)
+- **Integration Tests**: Test API endpoints and data flow (80%+ coverage goal)
+
+#### Required Testing Practices
+
+- All new features MUST include tests before implementation
+- Vietnamese search functionality MUST be tested with diacritic variations
+- API endpoints MUST include error handling tests
+- Components MUST include accessibility tests
+- All tests MUST pass before code can be merged
+
+#### Test Organization
+
+```
+tests/
+├── setup.ts                 # Global test configuration
+├── utils/                   # Test utilities and helpers
+├── mocks/                   # MSW API mocks
+├── components/              # Component tests
+└── api/                     # API integration tests
+
+src/
+├── lib/__tests__/           # Utility function tests
+├── server/utils/__tests__/  # Server utility tests
+└── components/ui/__tests__/ # UI component tests
+```
+
+#### Coverage Requirements
+
+- Overall coverage: 85%+
+- Critical paths (auth, data flow): 95%+
+- Vietnamese search utilities: 100%
+- UI components: 90%+
 
 ### Optimistic Updates Pattern
 
