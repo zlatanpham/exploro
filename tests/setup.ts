@@ -45,6 +45,34 @@ vi.mock("next/dynamic", () => ({
   },
 }));
 
+// Mock NextAuth
+vi.mock("next-auth", () => ({
+  default: vi.fn(),
+}));
+
+vi.mock("next-auth/react", () => ({
+  useSession: () => ({
+    data: {
+      user: {
+        id: "test-user-id",
+        email: "test@example.com",
+        name: "Test User",
+        role: "admin",
+      },
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    },
+    status: "authenticated",
+  }),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  getSession: vi.fn(),
+}));
+
+vi.mock("@auth/prisma-adapter", () => ({
+  PrismaAdapter: vi.fn(),
+}));
+
 // Mock environment variables
 process.env.NEXTAUTH_SECRET = "test-secret";
 process.env.NEXTAUTH_URL = "http://localhost:3000";

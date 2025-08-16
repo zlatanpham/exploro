@@ -56,7 +56,7 @@ function Button({
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
-      disabled={isLoading ?? props.disabled}
+      disabled={isLoading || props.disabled}
     >
       {React.Children.map(children, (child) => {
         if (typeof child === "string" || typeof child === "number") {

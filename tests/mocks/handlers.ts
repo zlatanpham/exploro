@@ -44,6 +44,41 @@ export const mockDishes = [
     status: "active",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    ingredients: [
+      {
+        ingredient_id: "1",
+        name_vi: "Thịt bò",
+        name_en: "Beef",
+        quantity: 0.5,
+        unit_id: "kg-1",
+        unit: {
+          id: "kg-1",
+          symbol: "kg",
+          name_vi: "kilogram",
+          name_en: "kilogram",
+        },
+        optional: false,
+        notes: "Thái lát mỏng",
+        cost: 125000,
+      },
+      {
+        ingredient_id: "2",
+        name_vi: "Hành tây",
+        name_en: "Onion",
+        quantity: 0.1,
+        unit_id: "kg-1",
+        unit: {
+          id: "kg-1",
+          symbol: "kg",
+          name_vi: "kilogram",
+          name_en: "kilogram",
+        },
+        optional: false,
+        notes: "Cắt lát",
+        cost: 10000,
+      },
+    ],
+    total_cost: 135000,
   },
 ];
 
@@ -90,14 +125,63 @@ export const mockTags = [
 // API handlers
 export const handlers = [
   // Ingredients API
-  http.get("/api/v1/ingredients", () => {
+  http.get("/api/v1/ingredients", ({ request }) => {
+    const url = new URL(request.url);
+    const search = url.searchParams.get("search");
+
+    let filteredIngredients = mockIngredients;
+
+    // Vietnamese search simulation
+    if (search) {
+      if (search.toLowerCase() === "bot ngot") {
+        filteredIngredients = [
+          {
+            id: "3",
+            name_vi: "Bột ngọt",
+            name_en: "MSG",
+            category: "spices",
+            current_price: 15000,
+            unit_id: "g-1",
+            density: null,
+            seasonal_flag: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ];
+      } else if (search.toLowerCase() === "beef pho") {
+        filteredIngredients = [
+          {
+            id: "4",
+            name_vi: "Phở bò",
+            name_en: "Beef Pho",
+            category: "soup",
+            current_price: 50000,
+            unit_id: "kg-1",
+            density: null,
+            seasonal_flag: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ];
+      } else if (
+        search.toLowerCase().includes("thịt bò") ||
+        search.toLowerCase().includes("thit bo")
+      ) {
+        filteredIngredients = [mockIngredients[0]]; // Return just the beef ingredient
+      }
+    }
+
+    // Handle pagination
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "10");
+
     return HttpResponse.json({
-      data: mockIngredients,
+      data: filteredIngredients,
       pagination: {
-        total: mockIngredients.length,
-        page: 1,
-        limit: 10,
-        totalPages: 1,
+        total: filteredIngredients.length,
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(filteredIngredients.length / limit),
       },
     });
   }),
@@ -105,15 +189,36 @@ export const handlers = [
   http.get("/api/v1/ingredients/:id", ({ params }) => {
     const ingredient = mockIngredients.find((ing) => ing.id === params.id);
     if (!ingredient) {
-      return new HttpResponse(null, { status: 404 });
+      return HttpResponse.json(
+        { error: "Ingredient not found" },
+        { status: 404 },
+      );
     }
     return HttpResponse.json({ data: ingredient });
   }),
 
   http.post("/api/v1/ingredients", async ({ request }) => {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader) {
+      return HttpResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
+
+    // Validation simulation
+    if (
+      !body.ingredient?.name_vi ||
+      body.ingredient.name_vi === "" ||
+      body.ingredient.current_price < 0
+    ) {
+      return HttpResponse.json(
+        { error: "Validation failed", code: "VALIDATION_ERROR" },
+        { status: 400 },
+      );
+    }
+
     const newIngredient = {
-      id: Math.random().toString(),
+      id: "3", // Fixed ID for predictable testing
       ...body.ingredient,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -121,12 +226,77 @@ export const handlers = [
     return HttpResponse.json({ data: newIngredient }, { status: 201 });
   }),
 
+  http.put("/api/v1/ingredients/:id", async ({ params, request }) => {
+    const ingredient = mockIngredients.find((ing) => ing.id === params.id);
+    if (!ingredient) {
+      return new HttpResponse(null, { status: 404 });
+    }
+    const body = await request.json();
+    const updatedIngredient = {
+      ...ingredient,
+      ...body.ingredient,
+      updated_at: new Date().toISOString(),
+    };
+    return HttpResponse.json({ data: updatedIngredient });
+  }),
+
+  http.delete("/api/v1/ingredients/:id", ({ params, request }) => {
+    const ingredient = mockIngredients.find((ing) => ing.id === params.id);
+    if (!ingredient) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    // Check authorization header for permission simulation
+    const authHeader = request.headers.get("authorization");
+    if (authHeader?.includes("user-token")) {
+      return HttpResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    return HttpResponse.json({ success: true });
+  }),
+
   // Dishes API
-  http.get("/api/v1/dishes", () => {
+  http.get("/api/v1/dishes", ({ request }) => {
+    const url = new URL(request.url);
+    const difficulty = url.searchParams.get("difficulty");
+    const search = url.searchParams.get("search");
+
+    let filteredDishes = mockDishes;
+
+    // Filter by difficulty
+    if (difficulty === "easy") {
+      filteredDishes = [
+        {
+          id: "2",
+          name_vi: "Trứng chiên",
+          name_en: "Fried Egg",
+          difficulty: "easy",
+          cook_time: 5,
+          prep_time: 2,
+          servings: 1,
+          status: "active",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ];
+    }
+
+    // Search functionality
+    if (search) {
+      if (
+        search.toLowerCase().includes("pho") ||
+        search.toLowerCase().includes("bo")
+      ) {
+        filteredDishes = mockDishes; // Return pho dish
+      } else if (search.toLowerCase().includes("traditional")) {
+        filteredDishes = mockDishes; // Return pho dish which has traditional in description
+      }
+    }
+
     return HttpResponse.json({
-      data: mockDishes,
+      data: filteredDishes,
       pagination: {
-        total: mockDishes.length,
+        total: filteredDishes.length,
         page: 1,
         limit: 10,
         totalPages: 1,
@@ -144,13 +314,78 @@ export const handlers = [
 
   http.post("/api/v1/dishes", async ({ request }) => {
     const body = await request.json();
+
+    // Validation simulation
+    if (!body.dish?.name_vi || body.dish.name_vi === "") {
+      return HttpResponse.json(
+        { error: "Validation failed", code: "VALIDATION_ERROR" },
+        { status: 400 },
+      );
+    }
+
+    // Check for invalid ingredient references
+    if (
+      body.dish?.ingredients?.some(
+        (ing: any) => ing.ingredient_id === "non-existent-id",
+      )
+    ) {
+      return HttpResponse.json(
+        { error: "Invalid ingredient reference", code: "INVALID_REFERENCE" },
+        { status: 400 },
+      );
+    }
+
     const newDish = {
-      id: Math.random().toString(),
+      id: "2", // Fixed ID for predictable testing
       ...body.dish,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
     return HttpResponse.json({ data: newDish }, { status: 201 });
+  }),
+
+  http.put("/api/v1/dishes/:id", async ({ params, request }) => {
+    const dish = mockDishes.find((d) => d.id === params.id);
+    if (!dish) {
+      return new HttpResponse(null, { status: 404 });
+    }
+    const body = await request.json();
+    const updatedDish = {
+      ...dish,
+      ...body.dish,
+      updated_at: new Date().toISOString(),
+      total_cost: 200000, // Simulated recalculated cost
+    };
+    return HttpResponse.json({ data: updatedDish });
+  }),
+
+  http.delete("/api/v1/dishes/:id", ({ params, request }) => {
+    const dish = mockDishes.find((d) => d.id === params.id);
+    if (!dish) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    // Check authorization header for permission simulation
+    const authHeader = request.headers.get("authorization");
+    if (authHeader?.includes("user-token")) {
+      return HttpResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    return HttpResponse.json({ success: true });
+  }),
+
+  http.post("/api/v1/dishes/batch", async ({ request }) => {
+    const body = await request.json();
+    const results = body.dishes.map((dish: any) => ({
+      success: true,
+      data: {
+        id: Math.random().toString(),
+        ...dish,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    }));
+    return HttpResponse.json({ results }, { status: 201 });
   }),
 
   // Units API

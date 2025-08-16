@@ -62,8 +62,8 @@ describe("Dishes API Integration Tests", () => {
       expect(response.ok).toBe(true);
       expect(data.data).toHaveLength(1);
       expect(data.data[0].ingredients).toBeDefined();
-      expect(data.data[0].ingredients).toHaveLength(1);
-      expect(data.data[0].total_cost).toBe(125000);
+      expect(data.data[0].ingredients).toHaveLength(2);
+      expect(data.data[0].total_cost).toBe(135000);
       expect(data.data[0].ingredients[0].name_vi).toBe("Thịt bò");
     });
 
@@ -87,9 +87,12 @@ describe("Dishes API Integration Tests", () => {
         json: async () => createSuccessResponse(easyDishes),
       });
 
-      await fetch("/api/v1/dishes?difficulty=easy");
+      const response = await fetch("/api/v1/dishes?difficulty=easy");
+      const data = await response.json();
 
-      expect(fetch).toHaveBeenCalledWith("/api/v1/dishes?difficulty=easy");
+      expect(response.ok).toBe(true);
+      expect(data.data).toHaveLength(1);
+      expect(data.data[0].difficulty).toBe("easy");
     });
 
     it("should filter dishes by maximum cook time", async () => {
@@ -99,9 +102,11 @@ describe("Dishes API Integration Tests", () => {
         json: async () => createSuccessResponse([]),
       });
 
-      await fetch("/api/v1/dishes?max_cook_time=30");
+      const response = await fetch("/api/v1/dishes?max_cook_time=30");
+      const data = await response.json();
 
-      expect(fetch).toHaveBeenCalledWith("/api/v1/dishes?max_cook_time=30");
+      expect(response.ok).toBe(true);
+      expect(data.data).toBeDefined();
     });
 
     it("should filter dishes by tags", async () => {
@@ -111,11 +116,11 @@ describe("Dishes API Integration Tests", () => {
         json: async () => createSuccessResponse([]),
       });
 
-      await fetch("/api/v1/dishes?tags=vietnamese&tags=soup");
+      const response = await fetch("/api/v1/dishes?tags=vietnamese&tags=soup");
+      const data = await response.json();
 
-      expect(fetch).toHaveBeenCalledWith(
-        "/api/v1/dishes?tags=vietnamese&tags=soup",
-      );
+      expect(response.ok).toBe(true);
+      expect(data.data).toBeDefined();
     });
 
     it("should search dishes by Vietnamese name", async () => {
@@ -136,9 +141,12 @@ describe("Dishes API Integration Tests", () => {
         json: async () => createSuccessResponse(searchResults),
       });
 
-      await fetch("/api/v1/dishes?search=phở");
+      const response = await fetch("/api/v1/dishes?search=phở");
+      const data = await response.json();
 
-      expect(fetch).toHaveBeenCalledWith("/api/v1/dishes?search=phở");
+      expect(response.ok).toBe(true);
+      expect(data.data).toHaveLength(1);
+      expect(data.data[0].name_vi).toBe("Phở bò");
     });
   });
 
@@ -377,9 +385,11 @@ describe("Dishes API Integration Tests", () => {
       });
 
       // Search "pho bo" should find "Phở bò"
-      await fetch("/api/v1/dishes?search=pho bo");
+      const response = await fetch("/api/v1/dishes?search=pho bo");
+      const data = await response.json();
 
-      expect(fetch).toHaveBeenCalledWith("/api/v1/dishes?search=pho bo");
+      expect(response.ok).toBe(true);
+      expect(data.data).toHaveLength(1);
     });
 
     it("should search dishes by English name", async () => {
@@ -398,9 +408,11 @@ describe("Dishes API Integration Tests", () => {
         json: async () => createSuccessResponse(searchResults),
       });
 
-      await fetch("/api/v1/dishes?search=beef pho");
+      const response = await fetch("/api/v1/dishes?search=beef pho");
+      const data = await response.json();
 
-      expect(fetch).toHaveBeenCalledWith("/api/v1/dishes?search=beef pho");
+      expect(response.ok).toBe(true);
+      expect(data.data).toHaveLength(1);
     });
 
     it("should search in dish descriptions", async () => {
@@ -419,9 +431,11 @@ describe("Dishes API Integration Tests", () => {
         json: async () => createSuccessResponse(searchResults),
       });
 
-      await fetch("/api/v1/dishes?search=traditional");
+      const response = await fetch("/api/v1/dishes?search=traditional");
+      const data = await response.json();
 
-      expect(fetch).toHaveBeenCalledWith("/api/v1/dishes?search=traditional");
+      expect(response.ok).toBe(true);
+      expect(data.data).toHaveLength(1);
     });
   });
 
