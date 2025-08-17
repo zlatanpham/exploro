@@ -143,7 +143,7 @@ export const POST = withApiAuth(
     // Find a user associated with this API key's organization
     // For now, we'll use the API key creator
     const apiKey = await db.apiKey.findUnique({
-      where: { id: context.apiKey.id },
+      where: { id: _context.apiKey.id },
       select: { created_by: true },
     });
 

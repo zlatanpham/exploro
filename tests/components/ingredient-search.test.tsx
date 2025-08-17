@@ -319,7 +319,9 @@ describe("IngredientSearch Component", () => {
 
       await user.type(searchInput, "Vietnamese ingredients");
 
-      expect(searchInput.value).toBe("Vietnamese ingredients");
+      expect((searchInput as HTMLInputElement).value).toBe(
+        "Vietnamese ingredients",
+      );
     });
 
     it("should clear results when performing new search", async () => {

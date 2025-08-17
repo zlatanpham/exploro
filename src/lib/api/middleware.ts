@@ -73,7 +73,7 @@ export function withApiAuth<T = unknown>(
       });
 
       return response;
-    } catch {
+    } catch (error) {
       const responseTime = Date.now() - startTime;
 
       // Log failed request if we have an API key

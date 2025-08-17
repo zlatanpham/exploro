@@ -11,6 +11,7 @@ export const mockSession: Session = {
     email: "test@example.com",
     name: "Test User",
     role: "admin",
+    language_preference: "vi",
   },
   expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
 };
@@ -21,6 +22,7 @@ export const mockUserSession: Session = {
     email: "user@example.com",
     name: "Test User",
     role: "user",
+    language_preference: "vi",
   },
   expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
 };

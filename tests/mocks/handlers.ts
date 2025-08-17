@@ -167,7 +167,7 @@ export const handlers = [
         search.toLowerCase().includes("thịt bò") ||
         search.toLowerCase().includes("thit bo")
       ) {
-        filteredIngredients = [mockIngredients[0]]; // Return just the beef ingredient
+        filteredIngredients = [mockIngredients[0]!]; // Return just the beef ingredient
       }
     }
 
@@ -203,11 +203,11 @@ export const handlers = [
       return HttpResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = (await request.json()) as any;
 
     // Validation simulation
     if (
-      !body.ingredient?.name_vi ||
+      !body?.ingredient?.name_vi ||
       body.ingredient.name_vi === "" ||
       body.ingredient.current_price < 0
     ) {
@@ -231,7 +231,7 @@ export const handlers = [
     if (!ingredient) {
       return new HttpResponse(null, { status: 404 });
     }
-    const body = await request.json();
+    const body = (await request.json()) as any;
     const updatedIngredient = {
       ...ingredient,
       ...body.ingredient,
@@ -270,6 +270,10 @@ export const handlers = [
           id: "2",
           name_vi: "Trứng chiên",
           name_en: "Fried Egg",
+          description_vi: "Món trứng chiên đơn giản",
+          description_en: "Simple fried egg dish",
+          instructions_vi: "Chiên trứng với dầu",
+          instructions_en: "Fry egg with oil",
           difficulty: "easy",
           cook_time: 5,
           prep_time: 2,
@@ -277,6 +281,8 @@ export const handlers = [
           status: "active",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+          ingredients: [],
+          total_cost: 5000,
         },
       ];
     }
@@ -313,10 +319,10 @@ export const handlers = [
   }),
 
   http.post("/api/v1/dishes", async ({ request }) => {
-    const body = await request.json();
+    const body = (await request.json()) as any;
 
     // Validation simulation
-    if (!body.dish?.name_vi || body.dish.name_vi === "") {
+    if (!body?.dish?.name_vi || body.dish.name_vi === "") {
       return HttpResponse.json(
         { error: "Validation failed", code: "VALIDATION_ERROR" },
         { status: 400 },
@@ -349,7 +355,7 @@ export const handlers = [
     if (!dish) {
       return new HttpResponse(null, { status: 404 });
     }
-    const body = await request.json();
+    const body = (await request.json()) as any;
     const updatedDish = {
       ...dish,
       ...body.dish,
@@ -375,7 +381,7 @@ export const handlers = [
   }),
 
   http.post("/api/v1/dishes/batch", async ({ request }) => {
-    const body = await request.json();
+    const body = (await request.json()) as any;
     const results = body.dishes.map((dish: any) => ({
       success: true,
       data: {
