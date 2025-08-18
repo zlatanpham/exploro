@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -25,8 +25,16 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Trash2, Edit, Plus, Search } from "lucide-react";
+import {
+  Trash2,
+  Edit,
+  Plus,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { normalizeVietnamese } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -63,6 +71,8 @@ export default function IngredientsPage() {
   const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingIngredient, setEditingIngredient] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -190,6 +200,23 @@ export default function IngredientsPage() {
     return matchesSearch && matchesCategory;
   });
 
+  // Pagination calculations
+  const totalItems = filteredIngredients?.length || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedIngredients = filteredIngredients?.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  const resetToFirstPage = () => {
+    setCurrentPage(1);
+  };
+
+  // Update pagination when search or category changes
+  React.useEffect(() => {
+    resetToFirstPage();
+  }, [searchQuery, selectedCategory]);
+
   // Show loading state while checking authentication
   if (status === "loading") {
     return <div className="container mx-auto pt-4 pb-6">Loading...</div>;
@@ -261,7 +288,7 @@ export default function IngredientsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredIngredients?.map((ingredient) => (
+              {paginatedIngredients?.map((ingredient) => (
                 <TableRow key={ingredient.id}>
                   <TableCell>
                     <div>
@@ -274,22 +301,48 @@ export default function IngredientsPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {INGREDIENT_CATEGORIES.find(
-                      (c) => c.value === ingredient.category,
-                    )?.[language === "vi" ? "label_vi" : "label_en"] ??
-                      ingredient.category}
+                    <Badge variant="secondary" className="text-xs">
+                      {INGREDIENT_CATEGORIES.find(
+                        (c) => c.value === ingredient.category,
+                      )?.[language === "vi" ? "label_vi" : "label_en"] ??
+                        ingredient.category}
+                    </Badge>
                   </TableCell>
                   <TableCell>
-                    {ingredient.unit?.symbol || ingredient.default_unit || "-"}
+                    {ingredient.unit?.symbol ? (
+                      <div className="flex items-center gap-2">
+                        <span className="bg-muted rounded px-2 py-1 font-mono text-sm">
+                          {ingredient.unit.symbol}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                          {language === "vi"
+                            ? ingredient.unit.name_vi
+                            : ingredient.unit.name_en}
+                        </span>
+                      </div>
+                    ) : ingredient.default_unit ? (
+                      <span className="bg-muted rounded px-2 py-1 font-mono text-sm">
+                        {ingredient.default_unit}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
                   </TableCell>
                   <TableCell>
-                    {formatPrice(toSafeNumber(ingredient.current_price))}
+                    <span className="font-medium">
+                      {formatPrice(toSafeNumber(ingredient.current_price))}
+                    </span>
                   </TableCell>
                   <TableCell>
                     {ingredient.seasonal_flag ? (
-                      <span className="text-green-600">✓</span>
+                      <Badge
+                        variant="outline"
+                        className="border-green-300 bg-green-50 text-green-700"
+                      >
+                        Seasonal
+                      </Badge>
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-muted-foreground text-sm">-</span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -319,6 +372,84 @@ export default function IngredientsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Pagination and Results Summary */}
+      {filteredIngredients && filteredIngredients.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground text-sm">
+            Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of{" "}
+            {totalItems} ingredients
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((page) => {
+                    // Show first page, last page, current page, and pages around current
+                    return (
+                      page === 1 ||
+                      page === totalPages ||
+                      Math.abs(page - currentPage) <= 1
+                    );
+                  })
+                  .map((page, index, array) => (
+                    <React.Fragment key={page}>
+                      {/* Add ellipsis if there's a gap */}
+                      {index > 0 && (array[index - 1] ?? 0) < page - 1 && (
+                        <span className="text-muted-foreground px-2">...</span>
+                      )}
+
+                      <Button
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    </React.Fragment>
+                  ))}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* No results message */}
+      {filteredIngredients && filteredIngredients.length === 0 && (
+        <Card>
+          <CardContent className="py-8">
+            <div className="text-muted-foreground text-center">
+              <Search className="mx-auto mb-4 h-8 w-8 opacity-50" />
+              <p className="mb-2 text-lg">No ingredients found</p>
+              <p className="text-sm">
+                Try adjusting your search criteria or category filter
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog

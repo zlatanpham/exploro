@@ -268,6 +268,30 @@ const translations = {
     vi: "Hành động",
     en: "Actions",
   },
+  "action.add": {
+    vi: "Thêm",
+    en: "Add",
+  },
+  "action.loadMore": {
+    vi: "Tải thêm",
+    en: "Load more",
+  },
+  "status.active": {
+    vi: "Hoạt động",
+    en: "Active",
+  },
+  "status.inactive": {
+    vi: "Không hoạt động",
+    en: "Inactive",
+  },
+  "common.status": {
+    vi: "Trạng thái",
+    en: "Status",
+  },
+  "common.tags": {
+    vi: "Nhãn",
+    en: "Tags",
+  },
   "tag.name": {
     vi: "Tên nhãn",
     en: "Tag name",

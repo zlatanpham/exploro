@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { IngredientSelector } from "@/components/ingredient-selector";
 
 interface DishIngredient {
   ingredient_id: string;
@@ -49,6 +50,7 @@ interface Ingredient {
   id: string;
   name_vi: string;
   name_en: string | null;
+  category: string | null;
   unit: Unit | null;
 }
 
@@ -127,21 +129,13 @@ function IngredientRow({
         {/* Ingredient Selection */}
         <div className="space-y-2">
           <Label>{t("ingredient.name")} *</Label>
-          <Select
+          <IngredientSelector
+            ingredients={allIngredients || []}
             value={ingredient.ingredient_id || undefined}
             onValueChange={handleIngredientChange}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={t("action.select")} />
-            </SelectTrigger>
-            <SelectContent>
-              {allIngredients.map((ing) => (
-                <SelectItem key={ing.id} value={ing.id}>
-                  {language === "vi" ? ing.name_vi : ing.name_en || ing.name_vi}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder={t("action.select")}
+            showCategory={true}
+          />
         </div>
 
         {/* Unit Selection */}

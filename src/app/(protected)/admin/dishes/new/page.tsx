@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { IngredientSelector } from "@/components/ingredient-selector";
 import {
   Table,
   TableBody,
@@ -140,7 +141,7 @@ export default function NewDishPage() {
         source_url: source_url || undefined,
         status: dishStatus,
       },
-      ingredients: ingredients.map(ing => ({
+      ingredients: ingredients.map((ing) => ({
         ...ing,
         unit: ing.unit || undefined, // Convert empty strings to undefined
       })),
@@ -245,7 +246,9 @@ export default function NewDishPage() {
                 <Label htmlFor="difficulty">{t("dish.difficulty")} *</Label>
                 <Select
                   value={difficulty}
-                  onValueChange={(v) => setDifficulty(v as "easy" | "medium" | "hard")}
+                  onValueChange={(v) =>
+                    setDifficulty(v as "easy" | "medium" | "hard")
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={t("action.select")} />
@@ -403,7 +406,8 @@ export default function NewDishPage() {
                   {ingredients.map((ingredient, index) => (
                     <TableRow key={`ingredient-${index}`}>
                       <TableCell>
-                        <Select
+                        <IngredientSelector
+                          ingredients={allIngredients || []}
                           value={ingredient.ingredient_id || undefined}
                           onValueChange={(v) => {
                             // Update all at once to avoid multiple re-renders
@@ -414,51 +418,19 @@ export default function NewDishPage() {
                             updated[index] = {
                               ...updated[index],
                               ingredient_id: v,
-                              unit_id: selectedIng?.unit?.id || selectedIng?.unit_id || "",
+                              unit_id:
+                                selectedIng?.unit?.id ||
+                                selectedIng?.unit_id ||
+                                "",
                               unit: selectedIng?.unit?.symbol || "",
                               quantity: updated[index]?.quantity || 1,
                             };
                             setIngredients(updated);
                           }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder={t("action.select")}>
-                              {ingredient.ingredient_id &&
-                                allIngredients?.find(
-                                  (ing) => ing.id === ingredient.ingredient_id,
-                                )?.name_vi}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent
-                            onPointerDownOutside={(e) => e.preventDefault()}
-                          >
-                            {ingredientsLoading && (
-                              <div className="text-muted-foreground p-2 text-sm">
-                                Loading...
-                              </div>
-                            )}
-                            {ingredientsError && (
-                              <div className="p-2 text-sm text-red-500">
-                                Error loading ingredients
-                              </div>
-                            )}
-                            {!ingredientsLoading &&
-                              !ingredientsError &&
-                              (!allIngredients ||
-                                allIngredients.length === 0) && (
-                                <div className="text-muted-foreground p-2 text-sm">
-                                  No ingredients found
-                                </div>
-                              )}
-                            {allIngredients?.map((ing) => (
-                              <SelectItem key={ing.id} value={ing.id}>
-                                {language === "vi"
-                                  ? ing.name_vi
-                                  : (ing.name_en ?? ing.name_vi)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          placeholder={t("action.select")}
+                          disabled={ingredientsLoading}
+                          showCategory={true}
+                        />
                       </TableCell>
                       <TableCell>
                         <Input
@@ -501,7 +473,8 @@ export default function NewDishPage() {
                                   ...updated[index],
                                   unit_id: v,
                                   unit: unit?.symbol || "",
-                                  ingredient_id: updated[index]?.ingredient_id || "",
+                                  ingredient_id:
+                                    updated[index]?.ingredient_id || "",
                                   quantity: updated[index]?.quantity || 1,
                                 };
                                 setIngredients(updated);

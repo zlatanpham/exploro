@@ -140,8 +140,8 @@ export default function AdminDishesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t("message.all")}</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="active">{t("status.active")}</SelectItem>
+                <SelectItem value="inactive">{t("status.inactive")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -157,8 +157,8 @@ export default function AdminDishesPage() {
                 <TableHead>{t("dish.difficulty")}</TableHead>
                 <TableHead>{t("dish.cookTime")}</TableHead>
                 <TableHead>{t("dish.servings")}</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tags</TableHead>
+                <TableHead>{t("common.status")}</TableHead>
+                <TableHead>{t("common.tags")}</TableHead>
                 <TableHead className="text-right">
                   {t("action.actions")}
                 </TableHead>
@@ -238,7 +238,7 @@ export default function AdminDishesPage() {
             disabled={isFetchingNextPage}
             variant="outline"
           >
-            {isFetchingNextPage ? t("message.loading") : "Load more"}
+            {isFetchingNextPage ? t("message.loading") : t("action.loadMore")}
           </Button>
         </div>
       )}

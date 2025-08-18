@@ -267,3 +267,86 @@ const mutation = api.example.mutate.useMutation({
 
 - Favorite/unfavorite dishes: Immediate heart icon feedback with server sync
 - All toggle-based interactions should follow this pattern
+
+### Internationalization (i18n) Guidelines
+
+This application supports Vietnamese and English languages through a custom translation system. All user-facing text MUST be translated using the translation system to ensure proper localization.
+
+#### Translation System Architecture
+
+- **Translation Context**: Located in `src/app/(protected)/_context/language.tsx`
+- **Translation Function**: Use `t("key")` function provided by `useLanguage()` hook
+- **Default Language**: Vietnamese (vi)
+- **Supported Languages**: Vietnamese (vi), English (en)
+
+#### Required Translation Practices
+
+- **NEVER use hardcoded text strings** in UI components that are visible to users
+- **ALWAYS use the `t()` function** for all user-facing text, labels, buttons, messages, and placeholders
+- **Add missing translations** to the `translations` object in `language.tsx` before using them
+- **Follow the existing key naming convention**: `category.item` (e.g., `action.create`, `dish.name`, `message.loading`)
+
+#### Common Translation Categories
+
+- **Navigation**: `nav.*` (nav.dishes, nav.menus, nav.admin)
+- **Actions**: `action.*` (action.create, action.edit, action.delete, action.search)
+- **Common UI**: `common.*` (common.status, common.tags)
+- **Status**: `status.*` (status.active, status.inactive)
+- **Messages**: `message.*` (message.loading, message.error, message.success)
+- **Form Fields**: `dish.*`, `ingredient.*`, `menu.*` for respective entity fields
+
+#### Implementation Examples
+
+**✅ CORRECT - Using translation function:**
+
+```typescript
+<Button>{t("action.create")}</Button>
+<TableHead>{t("common.status")}</TableHead>
+<SelectItem value="active">{t("status.active")}</SelectItem>
+```
+
+**❌ INCORRECT - Hardcoded strings:**
+
+```typescript
+<Button>Create</Button>
+<TableHead>Status</TableHead>
+<SelectItem value="active">Active</SelectItem>
+```
+
+#### Adding New Translations
+
+1. **Add to translations object** in `src/app/(protected)/_context/language.tsx`:
+
+```typescript
+"action.newAction": {
+  vi: "Hành động mới",
+  en: "New Action",
+},
+```
+
+2. **Use in components**:
+
+```typescript
+const { t } = useLanguage();
+return <Button>{t("action.newAction")}</Button>;
+```
+
+#### Translation Review Checklist
+
+Before committing any UI changes:
+
+- [ ] All user-visible text uses `t()` function
+- [ ] No hardcoded English or Vietnamese strings in JSX
+- [ ] New translation keys follow naming convention
+- [ ] Both Vietnamese and English translations are provided
+- [ ] UI is tested in both languages
+
+#### Common Violations to Avoid
+
+- **Hardcoded button text**: "Create", "Edit", "Delete" → Use `t("action.create")`, etc.
+- **Hardcoded table headers**: "Status", "Tags" → Use `t("common.status")`, `t("common.tags")`
+- **Hardcoded status values**: "Active", "Inactive" → Use `t("status.active")`, `t("status.inactive")`
+- **Hardcoded loading text**: "Load more" → Use `t("action.loadMore")`
+- **Hardcoded placeholders**: "Search..." → Use `t("action.search")` or create specific placeholder keys
+
+This ensures consistent localization across the entire application and provides proper Vietnamese support for all users.

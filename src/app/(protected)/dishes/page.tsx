@@ -371,7 +371,7 @@ export default function DishesPage() {
             disabled={isFetchingNextPage}
             variant="outline"
           >
-            {isFetchingNextPage ? t("message.loading") : "Load more"}
+            {isFetchingNextPage ? t("message.loading") : t("action.loadMore")}
           </Button>
         </div>
       )}
