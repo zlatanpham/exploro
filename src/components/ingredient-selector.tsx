@@ -48,7 +48,7 @@ export function IngredientSelector({
   placeholder,
   disabled = false,
   className,
-  showCategory = true,
+  showCategory: _showCategory = true,
 }: IngredientSelectorProps) {
   const { language, t } = useLanguage();
 
@@ -76,7 +76,7 @@ export function IngredientSelector({
         category: categoryLabel,
       };
     });
-  }, [ingredients, language, showCategory]);
+  }, [ingredients, language]);
 
   return (
     <SearchableCombobox

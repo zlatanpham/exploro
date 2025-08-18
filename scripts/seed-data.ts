@@ -24,32 +24,121 @@ async function main() {
 
   // Get unit IDs for mapping
   const units = await prisma.unit.findMany();
-  console.log("Available units:", units.map(u => u.symbol));
-  const unitMap = new Map(units.map(u => [u.symbol, u.id]));
-  
+  console.log(
+    "Available units:",
+    units.map((u) => u.symbol),
+  );
+  const unitMap = new Map(units.map((u) => [u.symbol, u.id]));
+
   // Check if required units exist
   const requiredUnits = ["kg", "bó", "ml", "l"];
   for (const unit of requiredUnits) {
     if (!unitMap.has(unit)) {
       console.error(`Missing required unit: ${unit}`);
-      throw new Error(`Unit ${unit} not found in database. Please run unit seeding first.`);
+      throw new Error(
+        `Unit ${unit} not found in database. Please run unit seeding first.`,
+      );
     }
   }
 
   // Create some ingredients
   const ingredients = [
-    { name_vi: "Thịt ba chỉ", name_en: "Pork belly", category: "meat", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 120000 },
-    { name_vi: "Gà ta", name_en: "Free-range chicken", category: "meat", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 150000 },
-    { name_vi: "Cá basa", name_en: "Basa fish", category: "seafood", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 80000 },
-    { name_vi: "Tôm sú", name_en: "Black tiger shrimp", category: "seafood", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 200000 },
-    { name_vi: "Rau muống", name_en: "Water spinach", category: "vegetables", default_unit: "bó", unit_id: unitMap.get("bó")!, current_price: 5000 },
-    { name_vi: "Cải xanh", name_en: "Bok choy", category: "vegetables", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 15000 },
-    { name_vi: "Hành tím", name_en: "Shallot", category: "vegetables", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 30000 },
-    { name_vi: "Tỏi", name_en: "Garlic", category: "spices", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 40000 },
-    { name_vi: "Gừng", name_en: "Ginger", category: "spices", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 35000 },
-    { name_vi: "Nước mắm", name_en: "Fish sauce", category: "sauces", default_unit: "ml", unit_id: unitMap.get("ml")!, current_price: 50 },
-    { name_vi: "Dầu ăn", name_en: "Cooking oil", category: "other", default_unit: "l", unit_id: unitMap.get("l")!, current_price: 40000 },
-    { name_vi: "Gạo tẻ", name_en: "White rice", category: "grains", default_unit: "kg", unit_id: unitMap.get("kg")!, current_price: 25000 },
+    {
+      name_vi: "Thịt ba chỉ",
+      name_en: "Pork belly",
+      category: "meat",
+      default_unit: "kg",
+      unit_id: unitMap.get("kg")!,
+      current_price: 120000,
+    },
+    {
+      name_vi: "Gà ta",
+      name_en: "Free-range chicken",
+      category: "meat",
+      default_unit: "kg",
+      unit_id: unitMap.get("kg")!,
+      current_price: 150000,
+    },
+    {
+      name_vi: "Cá basa",
+      name_en: "Basa fish",
+      category: "seafood",
+      default_unit: "kg",
+      unit_id: unitMap.get("kg")!,
+      current_price: 80000,
+    },
+    {
+      name_vi: "Tôm sú",
+      name_en: "Black tiger shrimp",
+      category: "seafood",
+      default_unit: "kg",
+      unit_id: unitMap.get("kg")!,
+      current_price: 200000,
+    },
+    {
+      name_vi: "Rau muống",
+      name_en: "Water spinach",
+      category: "vegetables",
+      default_unit: "bó",
+      unit_id: unitMap.get("bó")!,
+      current_price: 5000,
+    },
+    {
+      name_vi: "Cải xanh",
+      name_en: "Bok choy",
+      category: "vegetables",
+      default_unit: "kg",
+      unit_id: unitMap.get("kg")!,
+      current_price: 15000,
+    },
+    {
+      name_vi: "Hành tím",
+      name_en: "Shallot",
+      category: "vegetables",
+      default_unit: "kg",
+      unit_id: unitMap.get("kg")!,
+      current_price: 30000,
+    },
+    {
+      name_vi: "Tỏi",
+      name_en: "Garlic",
+      category: "spices",
+      default_unit: "kg",
+      unit_id: unitMap.get("kg")!,
+      current_price: 40000,
+    },
+    {
+      name_vi: "Gừng",
+      name_en: "Ginger",
+      category: "spices",
+      default_unit: "kg",
+      unit_id: unitMap.get("kg")!,
+      current_price: 35000,
+    },
+    {
+      name_vi: "Nước mắm",
+      name_en: "Fish sauce",
+      category: "sauces",
+      default_unit: "ml",
+      unit_id: unitMap.get("ml")!,
+      current_price: 50,
+    },
+    {
+      name_vi: "Dầu ăn",
+      name_en: "Cooking oil",
+      category: "other",
+      default_unit: "l",
+      unit_id: unitMap.get("l")!,
+      current_price: 40000,
+    },
+    {
+      name_vi: "Gạo tẻ",
+      name_en: "White rice",
+      category: "grains",
+      default_unit: "kg",
+      unit_id: unitMap.get("kg")!,
+      current_price: 25000,
+    },
   ];
 
   for (const ing of ingredients) {
@@ -63,8 +152,8 @@ async function main() {
         default_unit: ing.default_unit,
         current_price: ing.current_price,
         unit: {
-          connect: { id: ing.unit_id }
-        }
+          connect: { id: ing.unit_id },
+        },
       },
     });
   }
@@ -104,8 +193,10 @@ async function main() {
       name_en: "Caramelized pork belly",
       description_vi: "Món thịt kho truyền thống với nước dừa",
       description_en: "Traditional braised pork with coconut water",
-      instructions_vi: "1. Thái thịt thành miếng vừa ăn\n2. Ướp thịt với nước mắm và tiêu\n3. Làm nước màu\n4. Kho thịt với nước dừa trong 1 tiếng",
-      instructions_en: "1. Cut pork into bite-sized pieces\n2. Marinate with fish sauce and pepper\n3. Make caramel sauce\n4. Braise with coconut water for 1 hour",
+      instructions_vi:
+        "1. Thái thịt thành miếng vừa ăn\n2. Ướp thịt với nước mắm và tiêu\n3. Làm nước màu\n4. Kho thịt với nước dừa trong 1 tiếng",
+      instructions_en:
+        "1. Cut pork into bite-sized pieces\n2. Marinate with fish sauce and pepper\n3. Make caramel sauce\n4. Braise with coconut water for 1 hour",
       difficulty: "medium",
       cook_time: 60,
       prep_time: 20,
@@ -123,8 +214,10 @@ async function main() {
       name_en: "Stir-fried water spinach with garlic",
       description_vi: "Món rau xào đơn giản, thơm ngon",
       description_en: "Simple and delicious stir-fried vegetables",
-      instructions_vi: "1. Nhặt rau muống, rửa sạch\n2. Băm tỏi\n3. Phi thơm tỏi\n4. Xào rau muống với lửa lớn",
-      instructions_en: "1. Clean water spinach\n2. Mince garlic\n3. Sauté garlic\n4. Stir-fry water spinach on high heat",
+      instructions_vi:
+        "1. Nhặt rau muống, rửa sạch\n2. Băm tỏi\n3. Phi thơm tỏi\n4. Xào rau muống với lửa lớn",
+      instructions_en:
+        "1. Clean water spinach\n2. Mince garlic\n3. Sauté garlic\n4. Stir-fry water spinach on high heat",
       difficulty: "easy",
       cook_time: 10,
       prep_time: 5,
@@ -147,14 +240,16 @@ async function main() {
           where: { name_vi: ing.name },
         });
         return {
-          ingredient_id: ingredient!.id,
           quantity: ing.quantity,
           unit: ing.unit,
+          ingredient: {
+            connect: { id: ingredient!.id },
+          },
           unit_ref: {
-            connect: { id: unitMap.get(ing.unit)! }
+            connect: { id: unitMap.get(ing.unit)! },
           },
         };
-      })
+      }),
     );
 
     // Find tag IDs
@@ -162,10 +257,10 @@ async function main() {
       dishData.tags.map(async (tagName) => {
         const tag = createdTags.find((t) => t.name_vi === tagName);
         return tag!.id;
-      })
+      }),
     );
 
-    const { ingredients, tags, ...dishInfo } = dishData;
+    const { ingredients: _ingredients, tags: _tags, ...dishInfo } = dishData;
 
     await prisma.dish.create({
       data: {
@@ -190,6 +285,6 @@ main()
     console.error(e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
+  .finally(() => {
+    void prisma.$disconnect();
   });

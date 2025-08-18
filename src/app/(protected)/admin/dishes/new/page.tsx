@@ -65,13 +65,10 @@ export default function NewDishPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Fetch all ingredients (for dropdown)
-  const {
-    data: allIngredients,
-    isLoading: ingredientsLoading,
-    error: ingredientsError,
-  } = api.ingredient.getAll.useQuery(undefined, {
-    enabled: status === "authenticated" && session?.user?.role === "admin",
-  });
+  const { data: allIngredients, isLoading: ingredientsLoading } =
+    api.ingredient.getAll.useQuery(undefined, {
+      enabled: status === "authenticated" && session?.user?.role === "admin",
+    });
 
   // Fetch all unit categories
   const { data: unitCategories } = api.unit.getAllGrouped.useQuery(undefined, {
