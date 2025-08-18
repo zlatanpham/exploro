@@ -440,6 +440,124 @@ const translations = {
     vi: "Chưa có món ăn nào trong thực đơn",
     en: "No dishes in the menu yet",
   },
+
+  // Admin - Ingredient Mappings
+  "admin.ingredientMappings": {
+    vi: "Quy đổi đơn vị nguyên liệu",
+    en: "Ingredient Unit Mappings",
+  },
+  "admin.ingredientMappingsDescription": {
+    vi: "Quản lý quy đổi từ đơn vị đếm sang đơn vị cân đo cho từng nguyên liệu",
+    en: "Manage conversions from count units to measurable units for each ingredient",
+  },
+  "admin.noMappings": {
+    vi: "Chưa có quy đổi nào",
+    en: "No mappings yet",
+  },
+  "admin.noMappingsDescription": {
+    vi: "Tạo quy đổi đầu tiên để bắt đầu tính toán giá chính xác hơn",
+    en: "Create your first mapping to start more accurate price calculations",
+  },
+  
+  // Unit-related translations
+  "unit.countUnit": {
+    vi: "Đơn vị đếm",
+    en: "Count Unit",
+  },
+  "unit.measurableUnit": {
+    vi: "Đơn vị cân đo",
+    en: "Measurable Unit",
+  },
+  "unit.fromUnit": {
+    vi: "Từ đơn vị",
+    en: "From Unit",
+  },
+  "unit.toUnit": {
+    vi: "Sang đơn vị",
+    en: "To Unit",
+  },
+  "unit.mass": {
+    vi: "Khối lượng",
+    en: "Mass",
+  },
+  "unit.volume": {
+    vi: "Thể tích",
+    en: "Volume",
+  },
+  
+  // Actions for mappings
+  "action.addMapping": {
+    vi: "Thêm quy đổi",
+    en: "Add Mapping",
+  },
+  "action.testConversion": {
+    vi: "Test quy đổi",
+    en: "Test Conversion",
+  },
+  "action.selectIngredient": {
+    vi: "Chọn nguyên liệu",
+    en: "Select ingredient",
+  },
+  "action.selectUnit": {
+    vi: "Chọn đơn vị",
+    en: "Select unit",
+  },
+  "action.selectCountUnit": {
+    vi: "Chọn đơn vị đếm",
+    en: "Select count unit",
+  },
+  
+  // Conversion results
+  "conversion.result": {
+    vi: "Kết quả quy đổi",
+    en: "Conversion result",
+  },
+  "conversion.usedMapping": {
+    vi: "Sử dụng quy đổi riêng",
+    en: "Used ingredient mapping",
+  },
+  
+  // Common terms
+  "common.yes": {
+    vi: "Có",
+    en: "Yes",
+  },
+  "common.no": {
+    vi: "Không",
+    en: "No",
+  },
+  "common.result": {
+    vi: "Kết quả",
+    en: "Result",
+  },
+  "common.success": {
+    vi: "Thành công",
+    en: "Success",
+  },
+  "common.error": {
+    vi: "Lỗi",
+    en: "Error",
+  },
+  "common.quantity": {
+    vi: "Số lượng",
+    en: "Quantity",
+  },
+  
+  // Additional actions
+  "action.show": {
+    vi: "Hiện",
+    en: "Show",
+  },
+  "action.hide": {
+    vi: "Ẩn",
+    en: "Hide",
+  },
+  
+  // Additional admin
+  "admin.mappingExample": {
+    vi: "Ví dụ",
+    en: "Example",
+  },
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(

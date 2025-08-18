@@ -6,15 +6,23 @@ export interface ConversionResult {
   convertedValue?: Decimal;
   error?: string;
   path?: string[];
+  usedIngredientMapping?: boolean;
+  mappingDetails?: {
+    originalUnit: string;
+    mappedUnit: string;
+    mappingQuantity: Decimal;
+  };
 }
 
 export class UnitConversionService {
   private prisma: PrismaClient;
   private conversionCache: Map<string, Decimal>;
+  private ingredientMappingCache: Map<string, any>;
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
     this.conversionCache = new Map();
+    this.ingredientMappingCache = new Map();
   }
 
   /**
@@ -73,6 +81,64 @@ export class UnitConversionService {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  }
+
+  /**
+   * Convert a quantity from one unit to another with ingredient-specific mappings
+   */
+  async convertWithIngredientMapping(
+    quantity: Decimal | number,
+    fromUnitId: string,
+    toUnitId: string,
+    ingredientId: string,
+  ): Promise<ConversionResult> {
+    const quantityDecimal = new Decimal(quantity);
+
+    // If same unit, return as is
+    if (fromUnitId === toUnitId) {
+      return {
+        success: true,
+        convertedValue: quantityDecimal,
+        path: [fromUnitId],
+        usedIngredientMapping: false,
+      };
+    }
+
+    try {
+      // Check if there's an ingredient-specific mapping for this conversion
+      const ingredientMapping = await this.findIngredientMapping(ingredientId, fromUnitId);
+      
+      if (ingredientMapping) {
+        // Convert using ingredient mapping
+        const mappingResult = await this.convertUsingIngredientMapping(
+          quantityDecimal, 
+          fromUnitId, 
+          toUnitId, 
+          ingredientMapping
+        );
+        if (mappingResult.success) {
+          return {
+            ...mappingResult,
+            usedIngredientMapping: true,
+            mappingDetails: {
+              originalUnit: fromUnitId,
+              mappedUnit: ingredientMapping.measurable_unit_id,
+              mappingQuantity: ingredientMapping.quantity,
+            },
+          };
+        }
+      }
+
+      // Fallback to standard conversion
+      return await this.convert(quantityDecimal, fromUnitId, toUnitId);
+
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        usedIngredientMapping: false,
       };
     }
   }
@@ -302,9 +368,168 @@ export class UnitConversionService {
   }
 
   /**
+   * Find ingredient-specific mapping for a unit conversion
+   */
+  private async findIngredientMapping(ingredientId: string, fromUnitId: string) {
+    const cacheKey = `${ingredientId}-${fromUnitId}`;
+    const cached = this.ingredientMappingCache.get(cacheKey);
+    if (cached) return cached;
+
+    const mapping = await this.prisma.ingredientUnitMapping.findFirst({
+      where: {
+        ingredient_id: ingredientId,
+        count_unit_id: fromUnitId,
+      },
+      include: {
+        count_unit: { include: { category: true } },
+        measurable_unit: { include: { category: true } },
+      },
+    });
+
+    // Cache for 1 hour
+    if (mapping) {
+      this.ingredientMappingCache.set(cacheKey, mapping);
+      setTimeout(() => {
+        this.ingredientMappingCache.delete(cacheKey);
+      }, 60 * 60 * 1000);
+    }
+
+    return mapping;
+  }
+
+  /**
+   * Convert using ingredient-specific mapping
+   */
+  private async convertUsingIngredientMapping(
+    quantity: Decimal,
+    fromUnitId: string,
+    toUnitId: string,
+    mapping: any,
+  ): Promise<ConversionResult> {
+    try {
+      // First convert count unit to measurable unit using the mapping
+      // e.g., 2 quả trứng -> 2 * 60g = 120g
+      const measurableQuantity = quantity.mul(mapping.quantity);
+
+      // Then convert from measurable unit to target unit if needed
+      if (mapping.measurable_unit_id === toUnitId) {
+        return {
+          success: true,
+          convertedValue: measurableQuantity,
+          path: [fromUnitId, mapping.measurable_unit_id],
+        };
+      }
+
+      // Convert from measurable unit to target unit using standard conversion
+      return await this.convert(measurableQuantity, mapping.measurable_unit_id, toUnitId);
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  }
+
+  /**
+   * Get all ingredient mappings for a specific ingredient
+   */
+  async getIngredientMappings(ingredientId: string) {
+    return await this.prisma.ingredientUnitMapping.findMany({
+      where: { ingredient_id: ingredientId },
+      include: {
+        count_unit: true,
+        measurable_unit: true,
+      },
+    });
+  }
+
+  /**
+   * Create or update ingredient unit mapping
+   */
+  async setIngredientMapping(
+    ingredientId: string,
+    countUnitId: string,
+    measurableUnitId: string,
+    quantity: Decimal | number,
+  ) {
+    const quantityDecimal = new Decimal(quantity);
+    
+    // Validate that count unit is from count category and measurable unit is from mass/volume
+    const [countUnit, measurableUnit] = await Promise.all([
+      this.prisma.unit.findUnique({
+        where: { id: countUnitId },
+        include: { category: true },
+      }),
+      this.prisma.unit.findUnique({
+        where: { id: measurableUnitId },
+        include: { category: true },
+      }),
+    ]);
+
+    if (!countUnit || !measurableUnit) {
+      throw new Error('One or both units not found');
+    }
+
+    if (countUnit.category.name !== 'count') {
+      throw new Error('Count unit must be from the count category');
+    }
+
+    if (!['mass', 'volume'].includes(measurableUnit.category.name)) {
+      throw new Error('Measurable unit must be from mass or volume category');
+    }
+
+    // Create or update the mapping
+    const mapping = await this.prisma.ingredientUnitMapping.upsert({
+      where: {
+        ingredient_id_count_unit_id: {
+          ingredient_id: ingredientId,
+          count_unit_id: countUnitId,
+        },
+      },
+      update: {
+        measurable_unit_id: measurableUnitId,
+        quantity: quantityDecimal,
+      },
+      create: {
+        ingredient_id: ingredientId,
+        count_unit_id: countUnitId,
+        measurable_unit_id: measurableUnitId,
+        quantity: quantityDecimal,
+      },
+    });
+
+    // Clear cache for this mapping
+    const cacheKey = `${ingredientId}-${countUnitId}`;
+    this.ingredientMappingCache.delete(cacheKey);
+
+    return mapping;
+  }
+
+  /**
+   * Delete ingredient unit mapping
+   */
+  async deleteIngredientMapping(ingredientId: string, countUnitId: string) {
+    const deleted = await this.prisma.ingredientUnitMapping.delete({
+      where: {
+        ingredient_id_count_unit_id: {
+          ingredient_id: ingredientId,
+          count_unit_id: countUnitId,
+        },
+      },
+    });
+
+    // Clear cache
+    const cacheKey = `${ingredientId}-${countUnitId}`;
+    this.ingredientMappingCache.delete(cacheKey);
+
+    return deleted;
+  }
+
+  /**
    * Clear the conversion cache
    */
   clearCache(): void {
     this.conversionCache.clear();
+    this.ingredientMappingCache.clear();
   }
 }

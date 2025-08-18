@@ -3,6 +3,20 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 
 export const unitRouter = createTRPCRouter({
+  // Get all units
+  getAll: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.db.unit.findMany({
+      include: {
+        category: true,
+      },
+      orderBy: [
+        { category: { name: 'asc' } },
+        { is_base_unit: 'desc' },
+        { symbol: 'asc' },
+      ],
+    });
+  }),
+
   // Get all units grouped by category
   getAllGrouped: protectedProcedure.query(async ({ ctx }) => {
     const categories = await ctx.db.unitCategory.findMany({

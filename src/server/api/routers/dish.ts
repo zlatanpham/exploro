@@ -194,13 +194,15 @@ export const dishRouter = createTRPCRouter({
           di.unit_id !== di.ingredient.unit_id
         ) {
           if (!di.converted_quantity) {
-            let result = await conversionService.convert(
+            // Try ingredient-specific mapping first, then fallback to standard conversion
+            let result = await conversionService.convertWithIngredientMapping(
               di.quantity,
               di.unit_id,
               di.ingredient.unit_id,
+              di.ingredient.id,
             );
 
-            // If regular conversion failed, try density-based conversion
+            // If ingredient mapping failed and density is available, try density-based conversion
             if (!result.success && di.ingredient.density) {
               console.log(
                 `Trying density conversion for ${di.ingredient.name_vi}: density ${di.ingredient.density?.toNumber() ?? "unknown"} g/ml`,

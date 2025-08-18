@@ -32,6 +32,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  ArrowLeftRight,
+  Minus,
 } from "lucide-react";
 import { normalizeVietnamese } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -85,6 +87,15 @@ export default function IngredientsPage() {
     density: null as number | null,
     seasonal_flag: false,
   });
+  
+  // Unit mappings state
+  const [unitMappings, setUnitMappings] = useState<Array<{
+    id?: string;
+    countUnitId: string;
+    measurableUnitId: string;
+    quantity: number;
+  }>>([]);
+  const [showMappings, setShowMappings] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
@@ -95,8 +106,17 @@ export default function IngredientsPage() {
 
   const { data: ingredients, refetch } = api.ingredient.getAll.useQuery();
   const { data: unitCategories } = api.unit.getAllGrouped.useQuery();
+  const { data: allUnits } = api.unit.getAll.useQuery();
+  
+  // Ingredient mappings query - only when editing
+  const { data: existingMappings } = api.ingredientUnitMapping.getByIngredient.useQuery(
+    { ingredientId: editingIngredient?.id ?? "" },
+    { enabled: !!editingIngredient?.id }
+  );
   const createIngredient = api.ingredient.create.useMutation({
-    onSuccess: () => {
+    onSuccess: async (newIngredient) => {
+      // Save unit mappings for the new ingredient
+      await saveMappings(newIngredient.id);
       toast.success(t("message.success"));
       setIsCreateOpen(false);
       resetForm();
@@ -108,7 +128,11 @@ export default function IngredientsPage() {
   });
 
   const updateIngredient = api.ingredient.update.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      if (editingIngredient) {
+        // Save unit mappings for the updated ingredient
+        await saveMappings(editingIngredient.id);
+      }
       toast.success(t("message.success"));
       setEditingIngredient(null);
       resetForm();
@@ -129,6 +153,10 @@ export default function IngredientsPage() {
     },
   });
 
+  // Unit mapping mutations
+  const createMapping = api.ingredientUnitMapping.upsert.useMutation();
+  const deleteMapping = api.ingredientUnitMapping.delete.useMutation();
+
   const resetForm = () => {
     setFormData({
       name_vi: "",
@@ -140,6 +168,75 @@ export default function IngredientsPage() {
       density: null,
       seasonal_flag: false,
     });
+    setUnitMappings([]);
+    setShowMappings(false);
+  };
+
+  // Load existing mappings when editing an ingredient
+  React.useEffect(() => {
+    if (existingMappings) {
+      const mappings = existingMappings.map((mapping: any) => ({
+        id: mapping.id,
+        countUnitId: mapping.count_unit_id,
+        measurableUnitId: mapping.measurable_unit_id,
+        quantity: parseFloat(mapping.quantity.toString()),
+      }));
+      setUnitMappings(mappings);
+      setShowMappings(mappings.length > 0);
+    }
+  }, [existingMappings]);
+
+  // Save mappings for an ingredient
+  const saveMappings = async (ingredientId: string) => {
+    for (const mapping of unitMappings) {
+      try {
+        await createMapping.mutateAsync({
+          ingredientId,
+          countUnitId: mapping.countUnitId,
+          measurableUnitId: mapping.measurableUnitId,
+          quantity: mapping.quantity,
+        });
+      } catch (error) {
+        console.error("Error saving mapping:", error);
+      }
+    }
+  };
+
+  // Add a new mapping
+  const addMapping = () => {
+    setUnitMappings([
+      ...unitMappings,
+      {
+        countUnitId: "",
+        measurableUnitId: "",
+        quantity: 1,
+      },
+    ]);
+  };
+
+  // Remove a mapping
+  const removeMapping = async (index: number) => {
+    const mapping = unitMappings[index];
+    if (mapping?.id && editingIngredient) {
+      // Delete from server if it exists
+      try {
+        await deleteMapping.mutateAsync({
+          ingredientId: editingIngredient.id,
+          countUnitId: mapping.countUnitId,
+        });
+      } catch (error) {
+        console.error("Error deleting mapping:", error);
+      }
+    }
+    // Remove from local state
+    setUnitMappings(unitMappings.filter((_, i) => i !== index));
+  };
+
+  // Update a mapping
+  const updateMapping = (index: number, field: string, value: any) => {
+    const newMappings = [...unitMappings];
+    (newMappings[index] as any)[field] = value;
+    setUnitMappings(newMappings);
   };
 
   const handleCreate = () => {
@@ -174,6 +271,7 @@ export default function IngredientsPage() {
       density: ingredient.density ? toSafeNumber(ingredient.density) : null,
       seasonal_flag: ingredient.seasonal_flag,
     });
+    setShowMappings(false); // Will be set to true if mappings exist when data loads
   };
 
   const handleDelete = (id: string) => {
@@ -462,14 +560,14 @@ export default function IngredientsPage() {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>
               {editingIngredient ? t("action.edit") : t("action.create")}{" "}
               {t("ingredient.name")}
             </DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 overflow-y-auto flex-1">
             <div className="grid gap-2">
               <Label htmlFor="name_vi">
                 {t("ingredient.name")} (Tiếng Việt) *
@@ -603,6 +701,161 @@ export default function IngredientsPage() {
               <Label htmlFor="seasonal" className="cursor-pointer">
                 {t("ingredient.seasonal")}
               </Label>
+            </div>
+
+            {/* Unit Mappings Section */}
+            <div className="border-t border-gray-200 pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <Label className="text-base font-semibold text-gray-900">
+                    {t("admin.ingredientMappings")}
+                  </Label>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {t("admin.ingredientMappingsDescription")}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowMappings(!showMappings)}
+                  className="min-w-[120px]"
+                >
+                  <ArrowLeftRight className="w-4 h-4 mr-2" />
+                  {showMappings ? t("action.hide") : t("action.show")}
+                </Button>
+              </div>
+              
+              {showMappings && (
+                <div className="space-y-4">
+                  {unitMappings.length === 0 && (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      <ArrowLeftRight className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500 font-medium">{t("admin.noMappings")}</p>
+                      <p className="text-sm text-gray-400 mt-1">{t("admin.noMappingsDescription")}</p>
+                    </div>
+                  )}
+                  
+                  {unitMappings.map((mapping, index) => (
+                    <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-3 shadow-sm">
+                      {/* Single row layout with all fields horizontally aligned */}
+                      <div className="flex items-end gap-2">
+                        {/* Count unit select */}
+                        <div className="flex-1 min-w-0">
+                          <Label className="text-xs font-medium text-gray-600 mb-1 block">
+                            {t("unit.countUnit")}
+                          </Label>
+                          <Select
+                            value={mapping.countUnitId}
+                            onValueChange={(value) => updateMapping(index, "countUnitId", value)}
+                          >
+                            <SelectTrigger className="h-8 bg-white text-sm">
+                              <SelectValue placeholder={t("action.selectCountUnit")} />
+                            </SelectTrigger>
+                            <SelectContent className="max-w-xs">
+                              {allUnits?.filter((unit: any) => unit.category.name === "count").map((unit: any) => (
+                                <SelectItem key={unit.id} value={unit.id} className="text-sm">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <span className="font-medium text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                                      {unit.symbol}
+                                    </span>
+                                    <span className="text-xs truncate max-w-[120px]" title={unit.name_vi}>
+                                      {unit.name_vi}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {/* Equals sign */}
+                        <div className="text-sm font-medium text-gray-500 px-1 flex-shrink-0 pb-1">=</div>
+                        
+                        {/* Quantity input */}
+                        <div className="w-20 flex-shrink-0">
+                          <Label className="text-xs font-medium text-gray-600 mb-1 block">
+                            {t("common.quantity")}
+                          </Label>
+                          <Input
+                            type="number"
+                            step="0.001"
+                            min="0.001"
+                            value={mapping.quantity}
+                            onChange={(e) => updateMapping(index, "quantity", parseFloat(e.target.value) || 1)}
+                            className="h-8 bg-white text-center text-sm font-medium"
+                            placeholder="1"
+                          />
+                        </div>
+                        
+                        {/* Measurable unit select */}
+                        <div className="flex-1 min-w-0">
+                          <Label className="text-xs font-medium text-gray-600 mb-1 block">
+                            {t("unit.measurableUnit")}
+                          </Label>
+                          <Select
+                            value={mapping.measurableUnitId}
+                            onValueChange={(value) => updateMapping(index, "measurableUnitId", value)}
+                          >
+                            <SelectTrigger className="h-8 bg-white text-sm">
+                              <SelectValue placeholder={t("action.selectUnit")} />
+                            </SelectTrigger>
+                            <SelectContent className="max-w-xs">
+                              {allUnits?.filter((unit: any) => ["mass", "volume"].includes(unit.category.name)).map((unit: any) => (
+                                <SelectItem key={unit.id} value={unit.id} className="text-sm">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <span className="font-medium text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                                      {unit.symbol}
+                                    </span>
+                                    <span className="text-xs truncate max-w-[120px]" title={unit.name_vi}>
+                                      {unit.name_vi}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {/* Delete button */}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeMapping(index)}
+                          className="h-8 w-8 p-0 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors flex-shrink-0"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      
+                      {/* Compact preview */}
+                      {mapping.countUnitId && mapping.measurableUnitId && mapping.quantity && (
+                        <div className="bg-gray-100 border border-gray-300 rounded px-2 py-1.5 mt-2">
+                          <div className="text-xs text-gray-700 font-medium text-center">
+                            1 {allUnits?.find((u: any) => u.id === mapping.countUnitId)?.symbol || "unit"}
+                            <span className="mx-1">=</span>
+                            {mapping.quantity} {allUnits?.find((u: any) => u.id === mapping.measurableUnitId)?.symbol || "unit"}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  <div className="pt-3 border-t border-gray-200">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addMapping}
+                      className="w-full h-10 bg-white hover:bg-gray-50 border-dashed border-2 border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-700 transition-all text-sm"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      {t("action.addMapping")}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

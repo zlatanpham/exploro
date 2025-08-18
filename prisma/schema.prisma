@@ -147,11 +147,31 @@ model Ingredient {
     ingredient_category IngredientCategory? @relation(fields: [category_id], references: [id])
     DishIngredient   DishIngredient[]
     PriceHistory     PriceHistory[]
+    IngredientUnitMapping IngredientUnitMapping[]
 
     @@index([name_vi])
     @@index([category])
     @@index([category_id])
     @@index([unit_id])
+}
+
+model IngredientUnitMapping {
+    id                    String     @id @default(cuid())
+    ingredient_id         String
+    count_unit_id         String     // Must be from 'count' category
+    measurable_unit_id    String     // Must be from 'mass' or 'volume' category
+    quantity              Decimal    @db.Decimal(10, 3) // Amount of measurable unit per count unit
+    created_at            DateTime   @default(now())
+    updated_at            DateTime   @updatedAt
+    
+    ingredient            Ingredient @relation(fields: [ingredient_id], references: [id], onDelete: Cascade)
+    count_unit            Unit       @relation("CountUnit", fields: [count_unit_id], references: [id])
+    measurable_unit       Unit       @relation("MeasurableUnit", fields: [measurable_unit_id], references: [id])
+
+    @@unique([ingredient_id, count_unit_id])
+    @@index([ingredient_id])
+    @@index([count_unit_id])
+    @@index([measurable_unit_id])
 }
 
 model DishIngredient {
@@ -300,6 +320,8 @@ model Unit {
     price_histories      PriceHistory[]
     conversions_from     UnitConversion[] @relation("FromUnit")
     conversions_to       UnitConversion[] @relation("ToUnit")
+    count_unit_mappings     IngredientUnitMapping[] @relation("CountUnit")
+    measurable_unit_mappings IngredientUnitMapping[] @relation("MeasurableUnit")
 
     @@index([category_id])
     @@index([symbol])
