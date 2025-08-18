@@ -1467,4 +1467,231 @@ const response = await fetch('${origin}/api/v1/menus', {
 const result = await response.json();`,
     },
   },
+  {
+    id: "get-ingredient-unit-mappings",
+    method: "GET",
+    path: "/api/v1/ingredients/{id}/unit-mappings",
+    description: "Get unit mappings for a specific ingredient",
+    response: {
+      mappings: [
+        {
+          id: "uuid",
+          ingredient_id: "uuid",
+          count_unit_id: "uuid",
+          count_unit: {
+            id: "uuid",
+            symbol: "quả",
+            name_vi: "Quả",
+            name_en: "Piece",
+            category: "count",
+          },
+          measurable_unit_id: "uuid",
+          measurable_unit: {
+            id: "uuid",
+            symbol: "g",
+            name_vi: "Gram",
+            name_en: "Gram",
+            category: "mass",
+          },
+          quantity: 60.0,
+          created_at: "2024-01-01T00:00:00Z",
+        },
+      ],
+      total: 3,
+    },
+    examples: {
+      curl: `curl -X GET "${origin}/api/v1/ingredients/uuid-here/unit-mappings" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`,
+      python: `import requests
+
+response = requests.get(
+    "${origin}/api/v1/ingredients/uuid-here/unit-mappings",
+    headers={"Authorization": "Bearer YOUR_API_KEY"}
+)
+data = response.json()`,
+      javascript: `const response = await fetch('${origin}/api/v1/ingredients/uuid-here/unit-mappings', {
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY'
+  }
+});
+const data = await response.json();`,
+    },
+  },
+  {
+    id: "create-ingredient-unit-mapping",
+    method: "POST",
+    path: "/api/v1/ingredients/{id}/unit-mappings",
+    description: "Create or update unit mapping for ingredient",
+    requestBody: {
+      mapping: {
+        count_unit_id: "uuid", // Required - count unit ID (quả, chai, lon, etc.)
+        measurable_unit_id: "uuid", // Required - measurable unit ID (g, kg, ml, l)
+        quantity: 60.0, // Required - how many measurable units equal 1 count unit
+      },
+    },
+    response: {
+      mapping: {
+        id: "uuid",
+        ingredient_id: "uuid",
+        count_unit_id: "uuid",
+        measurable_unit_id: "uuid",
+        quantity: 60.0,
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+      },
+    },
+    examples: {
+      curl: `curl -X POST "${origin}/api/v1/ingredients/uuid-here/unit-mappings" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "mapping": {
+      "count_unit_id": "quả-unit-uuid",
+      "measurable_unit_id": "g-unit-uuid", 
+      "quantity": 60.0
+    }
+  }'`,
+      python: `import requests
+
+data = {
+    "mapping": {
+        "count_unit_id": "quả-unit-uuid",
+        "measurable_unit_id": "g-unit-uuid",
+        "quantity": 60.0
+    }
+}
+
+response = requests.post(
+    "${origin}/api/v1/ingredients/uuid-here/unit-mappings",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json=data
+)
+result = response.json()`,
+      javascript: `const data = {
+  mapping: {
+    count_unit_id: "quả-unit-uuid",
+    measurable_unit_id: "g-unit-uuid",
+    quantity: 60.0
+  }
+};
+
+const response = await fetch('${origin}/api/v1/ingredients/uuid-here/unit-mappings', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(data)
+});
+const result = await response.json();`,
+    },
+  },
+  {
+    id: "delete-ingredient-unit-mapping",
+    method: "DELETE",
+    path: "/api/v1/ingredients/{ingredient_id}/unit-mappings",
+    description: "Delete unit mapping for ingredient",
+    parameters: [
+      {
+        name: "count_unit_id",
+        type: "string",
+        required: true,
+        description: "The count unit ID to remove mapping for",
+      },
+    ],
+    response: {
+      message: "Unit mapping deleted successfully",
+    },
+    examples: {
+      curl: `curl -X DELETE "${origin}/api/v1/ingredients/uuid-here/unit-mappings?count_unit_id=quả-unit-uuid" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`,
+      python: `import requests
+
+response = requests.delete(
+    "${origin}/api/v1/ingredients/uuid-here/unit-mappings",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    params={"count_unit_id": "quả-unit-uuid"}
+)
+result = response.json()`,
+      javascript: `const response = await fetch('${origin}/api/v1/ingredients/uuid-here/unit-mappings?count_unit_id=quả-unit-uuid', {
+  method: 'DELETE',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY'
+  }
+});
+const result = await response.json();`,
+    },
+  },
+  {
+    id: "test-ingredient-unit-conversion",
+    method: "POST",
+    path: "/api/v1/ingredients/test-conversion",
+    description: "Test unit conversion with ingredient-specific mappings",
+    requestBody: {
+      ingredient_id: "uuid", // Required
+      from_unit_id: "uuid", // Required
+      to_unit_id: "uuid", // Required
+      quantity: 2, // Required - quantity to convert
+    },
+    response: {
+      conversion: {
+        original_quantity: 2,
+        converted_quantity: 120.0,
+        from_unit: {
+          id: "uuid",
+          symbol: "quả",
+          name_vi: "Quả",
+        },
+        to_unit: {
+          id: "uuid",
+          symbol: "g",
+          name_vi: "Gram",
+        },
+        used_ingredient_mapping: true,
+        mapping_ratio: "1 quả = 60 g",
+      },
+    },
+    examples: {
+      curl: `curl -X POST "${origin}/api/v1/ingredients/test-conversion" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "ingredient_id": "uuid-here",
+    "from_unit_id": "quả-unit-uuid", 
+    "to_unit_id": "g-unit-uuid",
+    "quantity": 2
+  }'`,
+      python: `import requests
+
+data = {
+    "ingredient_id": "uuid-here",
+    "from_unit_id": "quả-unit-uuid",
+    "to_unit_id": "g-unit-uuid", 
+    "quantity": 2
+}
+
+response = requests.post(
+    "${origin}/api/v1/ingredients/test-conversion",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json=data
+)
+result = response.json()`,
+      javascript: `const data = {
+  ingredient_id: "uuid-here",
+  from_unit_id: "quả-unit-uuid",
+  to_unit_id: "g-unit-uuid",
+  quantity: 2
+};
+
+const response = await fetch('${origin}/api/v1/ingredients/test-conversion', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(data)
+});
+const result = await response.json();`,
+    },
+  },
 ];

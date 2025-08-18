@@ -1182,6 +1182,156 @@ The API includes a comprehensive unit system for ingredient measurements with su
 - **Breaking Change**: As of the latest version, `unit_id` is now mandatory for creating/updating ingredients and dish ingredients
 - **Benefits**: Automatic conversions, multilingual support, data consistency, and advanced recipe scaling
 
+### Ingredient-Specific Unit Mappings
+
+**NEW FEATURE**: The system now supports ingredient-specific unit mappings that allow conversion from traditional Vietnamese count units (quả, chai, lon, hộp) to measurable units (kg, g, ml, l) for accurate pricing calculations.
+
+#### Get Ingredient Unit Mappings
+
+```
+GET /api/v1/ingredients/{id}/unit-mappings
+```
+
+Retrieve all unit mappings for a specific ingredient.
+
+**Response:**
+
+```json
+{
+  "mappings": [
+    {
+      "id": "uuid",
+      "ingredient_id": "uuid",
+      "count_unit_id": "uuid",
+      "count_unit": {
+        "id": "uuid",
+        "symbol": "quả",
+        "name_vi": "Quả",
+        "name_en": "Piece",
+        "category": "count"
+      },
+      "measurable_unit_id": "uuid",
+      "measurable_unit": {
+        "id": "uuid",
+        "symbol": "g",
+        "name_vi": "Gram",
+        "name_en": "Gram",
+        "category": "mass"
+      },
+      "quantity": 60.0,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "total": 3
+}
+```
+
+**Example:**
+
+```bash
+curl -X GET "http://localhost:3000/api/v1/ingredients/uuid-here/unit-mappings" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+#### Create/Update Ingredient Unit Mapping
+
+```
+POST /api/v1/ingredients/{id}/unit-mappings
+```
+
+Create or update a unit mapping for an ingredient.
+
+**Request Body:**
+
+```json
+{
+  "mapping": {
+    "count_unit_id": "uuid", // Required - count unit ID (quả, chai, lon, etc.)
+    "measurable_unit_id": "uuid", // Required - measurable unit ID (g, kg, ml, l)
+    "quantity": 60.0 // Required - how many measurable units equal 1 count unit
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "mapping": {
+    "id": "uuid",
+    "ingredient_id": "uuid",
+    "count_unit_id": "uuid",
+    "measurable_unit_id": "uuid",
+    "quantity": 60.0,
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+#### Delete Ingredient Unit Mapping
+
+```
+DELETE /api/v1/ingredients/{ingredient_id}/unit-mappings
+```
+
+Delete a unit mapping for an ingredient.
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| count_unit_id | string | Yes | The count unit ID to remove mapping for |
+
+**Response:**
+
+```json
+{
+  "message": "Unit mapping deleted successfully"
+}
+```
+
+#### Test Unit Conversion
+
+```
+POST /api/v1/ingredients/test-conversion
+```
+
+Test unit conversion with ingredient-specific mappings.
+
+**Request Body:**
+
+```json
+{
+  "ingredient_id": "uuid", // Required
+  "from_unit_id": "uuid", // Required
+  "to_unit_id": "uuid", // Required
+  "quantity": 2 // Required - quantity to convert
+}
+```
+
+**Response:**
+
+```json
+{
+  "conversion": {
+    "original_quantity": 2,
+    "converted_quantity": 120.0,
+    "from_unit": {
+      "id": "uuid",
+      "symbol": "quả",
+      "name_vi": "Quả"
+    },
+    "to_unit": {
+      "id": "uuid",
+      "symbol": "g",
+      "name_vi": "Gram"
+    },
+    "used_ingredient_mapping": true,
+    "mapping_ratio": "1 quả = 60 g"
+  }
+}
+```
+
 ### Unit Categories
 
 #### Mass (Khối lượng)
