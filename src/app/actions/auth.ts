@@ -19,9 +19,3 @@ export async function login(formData: FormData) {
     throw new Error(errorMessage);
   }
 }
-
-export async function githubSignIn() {
-  await signIn("github", {
-    redirectTo: "/",
-  });
-}

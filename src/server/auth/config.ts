@@ -1,6 +1,5 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type User, type NextAuthConfig } from "next-auth";
-import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
@@ -42,7 +41,6 @@ declare module "next-auth" {
 
 export const authConfig = {
   providers: [
-    GithubProvider,
     CredentialsProvider({
       name: "Credentials",
       credentials: {
