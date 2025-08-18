@@ -24,7 +24,17 @@ async function main() {
 
   // Get unit IDs for mapping
   const units = await prisma.unit.findMany();
+  console.log("Available units:", units.map(u => u.symbol));
   const unitMap = new Map(units.map(u => [u.symbol, u.id]));
+  
+  // Check if required units exist
+  const requiredUnits = ["kg", "bó", "ml", "l"];
+  for (const unit of requiredUnits) {
+    if (!unitMap.has(unit)) {
+      console.error(`Missing required unit: ${unit}`);
+      throw new Error(`Unit ${unit} not found in database. Please run unit seeding first.`);
+    }
+  }
 
   // Create some ingredients
   const ingredients = [
@@ -51,8 +61,10 @@ async function main() {
         name_en: ing.name_en,
         category: ing.category,
         default_unit: ing.default_unit,
-        unit_id: ing.unit_id,
         current_price: ing.current_price,
+        unit: {
+          connect: { id: ing.unit_id }
+        }
       },
     });
   }
@@ -138,7 +150,9 @@ async function main() {
           ingredient_id: ingredient!.id,
           quantity: ing.quantity,
           unit: ing.unit,
-          unit_id: unitMap.get(ing.unit)!,
+          unit_ref: {
+            connect: { id: unitMap.get(ing.unit)! }
+          },
         };
       })
     );
