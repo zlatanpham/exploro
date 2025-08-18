@@ -10,8 +10,8 @@ import { HydrateClient } from "@/trpc/server";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-  title: "Next Starter",
-  description: "A starter template for Next.js applications",
+  title: "Exploro",
+  description: "Discover and explore amazing recipes and menus",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

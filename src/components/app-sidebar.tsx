@@ -88,12 +88,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navSecondary = [
     {
       title: "Github",
-      url: "https://github.com/your-username/next-starter",
+      url: "https://github.com/thanh/exploro",
       icon: GithubIcon,
     },
     {
       title: "Feedback",
-      url: "https://github.com/your-username/next-starter/issues",
+      url: "https://github.com/thanh/exploro/issues",
       icon: Send,
     },
   ];
