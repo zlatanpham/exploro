@@ -304,9 +304,18 @@ export default function EditDishPage({
       setDescriptionEn(dish.description_en ?? "");
       setInstructionsVi(dish.instructions_vi);
       setInstructionsEn(dish.instructions_en ?? "");
-      setDifficulty(dish.difficulty as "easy" | "medium" | "hard");
-      console.log("Setting difficulty to:", dish.difficulty);
-      console.log("Translation for easy:", t("dish.difficulty.easy"));
+
+      // Handle difficulty - ensure it's one of the valid values
+      const validDifficulties = ["easy", "medium", "hard"] as const;
+      if (
+        dish.difficulty &&
+        validDifficulties.includes(dish.difficulty as any)
+      ) {
+        setDifficulty(dish.difficulty as "easy" | "medium" | "hard");
+      } else {
+        setDifficulty("medium"); // Default fallback
+      }
+
       setCookTime(dish.cook_time);
       setPrepTime(dish.prep_time ?? 15);
       setServings(dish.servings);
@@ -341,8 +350,8 @@ export default function EditDishPage({
     }
   }, [session, status, router]);
 
-  // Show loading state while checking authentication
-  if (status === "loading" || dishLoading) {
+  // Show loading state while checking authentication or while dish data is loading
+  if (status === "loading" || dishLoading || !dish) {
     return <div className="container mx-auto py-6">{t("message.loading")}</div>;
   }
 
@@ -353,6 +362,8 @@ export default function EditDishPage({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Difficulty is always set, no need to validate
 
     updateDish.mutate({
       id: resolvedParams.id,
@@ -478,13 +489,14 @@ export default function EditDishPage({
               <div className="relative">
                 <Label htmlFor="difficulty">{t("dish.difficulty")} *</Label>
                 <Select
+                  key={`difficulty-select-${difficulty}`}
                   value={difficulty}
                   onValueChange={(v) =>
                     setDifficulty(v as "easy" | "medium" | "hard")
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue />
+                    <SelectValue placeholder={t("action.select")} />
                   </SelectTrigger>
                   <SelectContent className="z-50" position="popper">
                     <SelectItem value="easy">
